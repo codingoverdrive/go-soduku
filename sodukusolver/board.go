@@ -38,12 +38,80 @@ func InitaliseBoard(newBoard [9][9]int) {
 			board[row][column] = newBoard[row][column]
 		}
 	}
+
+	//initialise the notes
+	notes = recalculateBoardNotes(board)
 }
 
 //PrintBoard outputs the current state of the board
 //The showNotes parameter determines whether the notes are also displayed
 func PrintBoard(showNotes bool) {
+	verticalBlockSeparator := "I"
+	print("       1       2       3       4       5       6       7       8       9\n")
+	for row := 0; row < 9; row++ {
+		if row%3 == 0 {
+			//used to differentiate the blocks horizontally
+			print("   =========================================================================\n")
+		} else {
+			print("   --------+-------+-------+-------+-------+-------+-------+-------+--------\n")
+		}
 
+		//each row is composed of three printed lines
+		//this is so that the notes can be represented as a 9x9 grid within each cell
+		for z := 0; z < 3; z++ {
+			if z == 1 {
+				print(" ", getBoardRowLetter(row), " ")
+			} else {
+				print("   ")
+			}
+			for column := 0; column < 9; column++ {
+				if column%3 == 0 {
+					//used to differentiate the blocks vertically
+					print(verticalBlockSeparator)
+				} else {
+					print("|")
+				}
+				print("  ")
+
+				actualValue := board[row][column]
+				if actualValue == 0 && showNotes {
+					noteValue := notes[row][column]
+					displayNotes(noteValue, z)
+				} else {
+					if z == 1 && actualValue != 0 {
+						print(" ", actualValue, " ")
+					} else {
+						print("   ")
+					}
+				}
+
+				print("  ")
+			}
+			print(verticalBlockSeparator)
+			print("\n")
+		}
+	}
+	print("   =========================================================================\n")
+}
+
+//getBoardRowLetter returns the row letter for the specified row
+func getBoardRowLetter(row int) string {
+	return []string{"A", "B", "C", "D", "E", "F", "G", "H", "I"}[row]
+}
+
+//displayNotes shows the notes within the cells as a 3x3 grid
+//which grid line (0-2) is represented by the rowIndex parameter
+func displayNotes(value int, rowIndex int) {
+	filler := "."
+
+	for number := 1 + (3 * rowIndex); number <= 3+(3*rowIndex); number++ {
+		digitBit := (int)(math.Pow(2, (float64)(number-1)))
+		if value&digitBit > 0 {
+			print(number)
+		} else {
+			print(filler)
+		}
+	}
 }
 
 //recalculateBoardNotes takes the board and generates a new set of notes
@@ -55,7 +123,7 @@ func recalculateBoardNotes(board [9][9]int) [9][9]int {
 			if board[row][column] == 0 {
 				rowSolvedNumbers := getSolvedNumbersInNineCells(convertRowToNineCells(board, row))
 				colSolvedNumbers := getSolvedNumbersInNineCells(convertColumnToNineCells(board, column))
-				blockIndex := row/3 + column%3
+				blockIndex := 3*(row/3) + column/3
 				blockSolvedNumbers := getSolvedNumbersInNineCells(convertBlockToNineCells(board, blockIndex))
 				newNotes[row][column] = 0x1ff ^ (rowSolvedNumbers | colSolvedNumbers | blockSolvedNumbers)
 			} else {
@@ -67,6 +135,7 @@ func recalculateBoardNotes(board [9][9]int) [9][9]int {
 	return newNotes
 }
 
+//convertRowToNineCells converts a row to a 9 cell array
 func convertRowToNineCells(board [9][9]int, row int) [9]int {
 	var cells [9]int
 	for column := 0; column < 9; column++ {
@@ -75,6 +144,7 @@ func convertRowToNineCells(board [9][9]int, row int) [9]int {
 	return cells
 }
 
+//convertColumnToNineCells converts a column to a 9 cell array
 func convertColumnToNineCells(board [9][9]int, column int) [9]int {
 	var cells [9]int
 	for row := 0; row < 9; row++ {
@@ -83,6 +153,10 @@ func convertColumnToNineCells(board [9][9]int, column int) [9]int {
 	return cells
 }
 
+//convertBlockToNineCells takes a 3x3 block and converts it to a 9 cell array
+//the blocks are indexed from 0 reading from top left to bottom right
+//the first three rows form blocks 0-2, the second three rows form blocks 3-5
+//and the final three rows for blocks 6-8
 func convertBlockToNineCells(board [9][9]int, blockIndex int) [9]int {
 	startRow := 3 * (blockIndex / 3)
 	startColumn := 3 * (blockIndex % 3)
