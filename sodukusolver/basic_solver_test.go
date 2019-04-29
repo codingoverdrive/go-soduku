@@ -36,8 +36,7 @@ func Test_findNakedSingles(t *testing.T) {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
 	}
-
-	assert.Equal(t, []CellSolution{}, findNakedSingles(notes1), "No solution expected")
+	assert.Equal(t, []AbsoluteCellSolution{}, findNakedSingles(notes1), "No solution expected")
 
 	notes2 := [9][9]int{
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -50,10 +49,65 @@ func Test_findNakedSingles(t *testing.T) {
 		{0, 0, 0, 0, 0, 0, 4, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
 	}
-
-	expected := []CellSolution{
-		CellSolution{1, 2, 1, "Naked Single", "Cell"},
-		CellSolution{7, 6, 3, "Naked Single", "Cell"},
+	expected := []AbsoluteCellSolution{
+		AbsoluteCellSolution{1, 2, 1, "Naked Single", "Cell"},
+		AbsoluteCellSolution{7, 6, 3, "Naked Single", "Cell"},
 	}
 	assert.Equal(t, expected, findNakedSingles(notes2), "Two solutions expected")
+}
+
+func Test_findHiddenSinglesInNineCells(t *testing.T) {
+	cells1 := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+	assert.Equal(t, []RelativeCellSolution{}, findHiddenSinglesInNineCells(cells1), "No solutions expected")
+
+	cells2 := [9]int{0, 0, 3, 0, 0, 0, 0, 4, 6}
+	expected2 := []RelativeCellSolution{
+		{2, 1},
+	}
+	assert.Equal(t, expected2, findHiddenSinglesInNineCells(cells2), "One solution expected")
+
+	cells3 := [9]int{12, 0, 2, 0, 0, 0, 1, 4, 6}
+	expected3 := []RelativeCellSolution{
+		{6, 1},
+		{0, 4},
+	}
+	assert.Equal(t, expected3, findHiddenSinglesInNineCells(cells3), "Two solutions expected")
+
+	cells4 := [9]int{0, 6, 0, 0, 0, 0, 2, 0, 0}
+	expected4 := []RelativeCellSolution{
+		{1, 3},
+	}
+	assert.Equal(t, expected4, findHiddenSinglesInNineCells(cells4), "One solution expected")
+}
+
+func Test_findHiddenSingles(t *testing.T) {
+	notes1 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	assert.Equal(t, []AbsoluteCellSolution{}, findHiddenSingles(notes1), "No solution expected")
+
+	notes2 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 6, 0, 0, 0, 0, 2, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 2, 0, 0, 0, 0, 2, 1, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected2 := []AbsoluteCellSolution{
+		AbsoluteCellSolution{7, 7, 1, "Hidden Single", "Cell"},
+		AbsoluteCellSolution{1, 1, 3, "Hidden Single", "Cell"},
+	}
+	assert.ElementsMatch(t, expected2, findHiddenSingles(notes2), "Two solutions expected")
 }

@@ -117,8 +117,17 @@ func SolveBoard() {
 			continue
 		}
 
+		hiddenSingles := findHiddenSingles(notes)
+		if len(hiddenSingles) > 0 {
+			print("Pass ", passCount, "\n")
+			applyCellSolutions(hiddenSingles)
+			continue
+		}
+
 		break
 	}
+	print("\n")
+	PrintBoard(true)
 	print("Stopping\n\n")
 }
 
@@ -195,6 +204,7 @@ func convertBlockToNineCells(board [9][9]int, blockIndex int) [9]int {
 	return cells
 }
 
+//getSolvedNumbersInNineCells identifies the solved numbers in 9 cells
 func getSolvedNumbersInNineCells(cells [9]int) int {
 	numbersSet := 0
 	for i := 0; i < 9; i++ {
@@ -209,7 +219,9 @@ func getSolvedNumbersInNineCells(cells [9]int) int {
 	return numbersSet
 }
 
-func applyCellSolutions(solutions []CellSolution) {
+//applyCellSolutions applies the solution(s) to the board and
+//then recalculates the notes (as a result of changes to the board)
+func applyCellSolutions(solutions []AbsoluteCellSolution) {
 	if len(solutions) == 0 {
 		return
 	}
