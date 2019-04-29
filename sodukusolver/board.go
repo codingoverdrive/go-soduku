@@ -1,6 +1,8 @@
 package sodukusolver
 
-import "math"
+import (
+	"math"
+)
 
 //holds the current board with the intial given cells and the new solved cells
 var board = [9][9]int{
@@ -94,6 +96,32 @@ func PrintBoard(showNotes bool) {
 	print("   =========================================================================\n")
 }
 
+//SolveBoard solves the board
+func SolveBoard() {
+	print("Soduku Solver\n\n")
+
+	print("\nInitial Board\n")
+	PrintBoard(false)
+	print("\nWith Notes\n")
+	PrintBoard(true)
+	print("\n")
+
+	passCount := 0
+	for {
+		passCount++
+
+		nakedSingles := findNakedSingles(notes)
+		if len(nakedSingles) > 0 {
+			print("Pass ", passCount, "\n")
+			applyCellSolutions(nakedSingles)
+			continue
+		}
+
+		break
+	}
+	print("Stopping\n\n")
+}
+
 //getBoardRowLetter returns the row letter for the specified row
 func getBoardRowLetter(row int) string {
 	return []string{"A", "B", "C", "D", "E", "F", "G", "H", "I"}[row]
@@ -179,4 +207,18 @@ func getSolvedNumbersInNineCells(cells [9]int) int {
 		}
 	}
 	return numbersSet
+}
+
+func applyCellSolutions(solutions []CellSolution) {
+	if len(solutions) == 0 {
+		return
+	}
+
+	for i := 0; i < len(solutions); i++ {
+		s := solutions[i]
+		board[s.Row][s.Column] = s.Number
+		print("Found ", s.Type, " [", s.Number, "] at ", s.Location, " ", getBoardRowLetter(s.Row), (1 + s.Column), "\n")
+	}
+
+	notes = recalculateBoardNotes(board)
 }

@@ -19,12 +19,5 @@ func main() {
 	}
 
 	sodukusolver.InitaliseBoard(board)
-
-	print("Soduku Solver\n\n")
-
-	print("\nInitial Board\n")
-	sodukusolver.PrintBoard(false)
-	print("\nWith Notes\n")
-	sodukusolver.PrintBoard(true)
-	print("\n")
+	sodukusolver.SolveBoard()
 }
