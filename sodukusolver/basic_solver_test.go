@@ -23,3 +23,37 @@ func Test_getLowestNumberFromNote(t *testing.T) {
 	assert.Equal(t, 3, getLowestNumberFromNote(4), "Failed to get correct number from note")
 	assert.Equal(t, 9, getLowestNumberFromNote(0x100), "Failed to get correct number from note")
 }
+
+func Test_findNakedSingles(t *testing.T) {
+	notes1 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+
+	assert.Equal(t, []CellSolution{}, findNakedSingles(notes1), "No solution expected")
+
+	notes2 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 4, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+
+	expected := []CellSolution{
+		CellSolution{1, 2, 1, "Naked Single", "Cell"},
+		CellSolution{7, 6, 3, "Naked Single", "Cell"},
+	}
+	assert.Equal(t, expected, findNakedSingles(notes2), "Two solutions expected")
+}
