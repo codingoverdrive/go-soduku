@@ -1,7 +1,9 @@
 package sodukusolver
 
 import (
+	"fmt"
 	"math"
+	"time"
 )
 
 //holds the current board with the intial given cells and the new solved cells
@@ -31,6 +33,76 @@ var notes = [9][9]int{
 	{0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+}
+
+//StrategyResult indicates the success or failure of a strategy
+//and how many solutions were found for the strategy
+type StrategyResult struct {
+	success   bool
+	solutions int
+}
+
+//CellStrategy a solver strategy that returns an array of AbsoluteCellSolutions
+type CellStrategy func([9][9]int) []AbsoluteCellSolution
+
+//applyCellStrategy applies a cell strategy and returns a result
+func applyCellStrategy(strategy CellStrategy, duration *time.Duration) StrategyResult {
+	startTime := time.Now()
+	solutions := strategy(notes)
+	elapsed := time.Since(startTime)
+	if len(solutions) > 0 {
+		applyCellSolutions(solutions)
+	}
+	*duration = *duration + elapsed
+	return StrategyResult{len(solutions) > 0, len(solutions)}
+}
+
+//SolveBoard solves the board
+func SolveBoard() {
+	print("Soduku Solver\n\n")
+
+	print("\nInitial Board\n")
+	PrintBoard(false)
+	print("\nWith Notes\n")
+	PrintBoard(true)
+	print("\n")
+
+	//keep track how how long the (full) solution takes to compute
+	var duration time.Duration
+
+	//keep tracks of how many steps are required to solve the puzzle
+	passCount := 0
+
+	//keep applying the different solution strategies until the puzzle is solved
+	for {
+		passCount++
+		print("Pass ", passCount, "\n")
+
+		//findNakedSingles
+		result := applyCellStrategy(findNakedSingles, &duration)
+		if result.success {
+			passCount += result.solutions - 1
+			continue
+		}
+
+		//findHiddenSingles
+		result = applyCellStrategy(findHiddenSingles, &duration)
+		if result.success {
+			passCount += result.solutions - 1
+			continue
+		}
+
+		break
+	}
+	print("\n")
+	PrintBoard(true)
+
+	if IsSolved() {
+		print("\nSolved in ", fmt.Sprintf("%s", duration), "\n")
+	} else {
+		print("\nUnsolved after ", fmt.Sprintf("%s", duration), "\n")
+		print("Stopping\n\n")
+	}
 }
 
 //InitaliseBoard initialises the board
@@ -94,41 +166,6 @@ func PrintBoard(showNotes bool) {
 		}
 	}
 	print("   =========================================================================\n")
-}
-
-//SolveBoard solves the board
-func SolveBoard() {
-	print("Soduku Solver\n\n")
-
-	print("\nInitial Board\n")
-	PrintBoard(false)
-	print("\nWith Notes\n")
-	PrintBoard(true)
-	print("\n")
-
-	passCount := 0
-	for {
-		passCount++
-
-		nakedSingles := findNakedSingles(notes)
-		if len(nakedSingles) > 0 {
-			print("Pass ", passCount, "\n")
-			applyCellSolutions(nakedSingles)
-			continue
-		}
-
-		hiddenSingles := findHiddenSingles(notes)
-		if len(hiddenSingles) > 0 {
-			print("Pass ", passCount, "\n")
-			applyCellSolutions(hiddenSingles)
-			continue
-		}
-
-		break
-	}
-	print("\n")
-	PrintBoard(true)
-	print("Stopping\n\n")
 }
 
 //getBoardRowLetter returns the row letter for the specified row
@@ -233,4 +270,16 @@ func applyCellSolutions(solutions []AbsoluteCellSolution) {
 	}
 
 	notes = recalculateBoardNotes(board)
+}
+
+// IsSolved return true if the board is solved
+func IsSolved() bool {
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			if board[i][j] == 0 {
+				return false
+			}
+		}
+	}
+	return true
 }
