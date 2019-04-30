@@ -43,20 +43,36 @@ func findNakedSingles(notes [9][9]int) []AbsoluteCellSolution {
 func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 	var solutions = []AbsoluteCellSolution{}
 
+	//search the rows
 	for row := 0; row < 9; row++ {
 		rowSolutions := findHiddenSinglesInNineCells(convertRowToNineCells(notes, row))
-		//convert the RelativeCellSolution to an AbsoluteCellSolution
 		for i := 0; i < len(rowSolutions); i++ {
 			s := rowSolutions[i]
 			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, s.Index, s.Number, "Hidden Single", "Cell"})
 		}
 	}
 
+	//search the columns
 	for column := 0; column < 9; column++ {
 		rowSolutions := findHiddenSinglesInNineCells(convertColumnToNineCells(notes, column))
 		for i := 0; i < len(rowSolutions); i++ {
 			s := rowSolutions[i]
 			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{s.Index, column, s.Number, "Hidden Single", "Cell"})
+		}
+	}
+
+	//seaech the blocks
+	for block := 0; block < 9; block++ {
+		rowSolutions := findHiddenSinglesInNineCells(convertBlockToNineCells(notes, block))
+		for i := 0; i < len(rowSolutions); i++ {
+			s := rowSolutions[i]
+
+			startRow := 3 * (block / 3)
+			row := startRow + s.Index/3
+			startColumn := 3 * (block % 3)
+			column := startColumn + s.Index%3
+
+			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, column, s.Number, "Hidden Single", "Cell"})
 		}
 	}
 

@@ -95,19 +95,20 @@ func Test_findHiddenSingles(t *testing.T) {
 	assert.Equal(t, []AbsoluteCellSolution{}, findHiddenSingles(notes1), "No solution expected")
 
 	notes2 := [9][9]int{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 6, 0, 0, 0, 0, 2, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 6, 2, 0, 0, 0, 2, 2, 1},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 2, 0, 0, 0, 0, 2, 1, 0},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 2, 2, 0, 0, 0, 2, 1, 1},
+		{0, 2, 0, 0, 0, 0, 0, 2, 0},
 	}
 	expected2 := []AbsoluteCellSolution{
 		AbsoluteCellSolution{7, 7, 1, "Hidden Single", "Cell"},
 		AbsoluteCellSolution{1, 1, 3, "Hidden Single", "Cell"},
+		AbsoluteCellSolution{7, 0, 1, "Hidden Single", "Cell"},
 	}
 	assert.ElementsMatch(t, expected2, findHiddenSingles(notes2), "Two solutions expected")
 }
