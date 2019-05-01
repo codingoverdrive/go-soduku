@@ -17,6 +17,24 @@ type AbsoluteCellSolution struct {
 	Location string
 }
 
+//RelativeCellSolutions represents a solution number and its index position within 9 cells
+type RelativeCellSolutions struct {
+	Indexes []int
+	Number  int
+}
+
+type CellRef struct {
+	Row    int
+	Column int
+}
+
+type CellExclusion struct {
+	number     int
+	matches    []CellRef
+	exclusions []CellRef
+	strategy   string
+}
+
 //findNakedSingles identifies single value(s) in any cell on the board
 func findNakedSingles(notes [9][9]int) []AbsoluteCellSolution {
 	var solutions = []AbsoluteCellSolution{}
@@ -61,7 +79,7 @@ func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 		}
 	}
 
-	//seaech the blocks
+	//search the blocks
 	for block := 0; block < 9; block++ {
 		rowSolutions := findHiddenSinglesInNineCells(convertBlockToNineCells(notes, block))
 		for i := 0; i < len(rowSolutions); i++ {
@@ -115,6 +133,180 @@ func findHiddenSinglesInNineCells(notes [9]int) []RelativeCellSolution {
 	}
 
 	return solutions
+}
+
+func findNakedPairs(notes [9][9]int) []CellExclusion {
+	var cellExclusions = []CellExclusion{}
+	//search rows for naked pairs
+	for row := 0; row < 9; row++ {
+		cells := convertRowToNineCells(notes, row)
+		cellSolutions := findNakedPairInNineCells(cells)
+		if len(cellSolutions) == 0 {
+			continue
+		}
+
+		exclusions := []int{}
+		//remove the same notes from other cells in the row
+		for i := 0; i < len(cellSolutions); i++ {
+			s := cellSolutions[i]
+			for column := 0; column < 9; column++ {
+				//skip the cells that have the pairs in
+				if contains(s.Indexes, column) {
+					continue
+				}
+
+				//check whether this note has any number from the pair
+				if notes[row][column]&s.Number > 0 {
+					exclusions = append(exclusions, column)
+				}
+			}
+
+			//only return this exclusion solution if >0 cells can have exclusions applied
+			if len(exclusions) > 0 {
+				matchRefs := []CellRef{}
+				for i := 0; i < len(s.Indexes); i++ {
+					matchRefs = append(matchRefs, CellRef{row, s.Indexes[i]})
+				}
+				exclRefs := []CellRef{}
+				for i := 0; i < len(exclusions); i++ {
+					exclRefs = append(exclRefs, CellRef{row, exclusions[i]})
+				}
+				cellExclusions = append(cellExclusions, CellExclusion{s.Number, matchRefs, exclRefs, "Naked Pairs"})
+			}
+		}
+	}
+
+	//search column for naked pairs
+	for column := 0; column < 9; column++ {
+		cells := convertColumnToNineCells(notes, column)
+		cellSolutions := findNakedPairInNineCells(cells)
+		if len(cellSolutions) == 0 {
+			continue
+		}
+
+		exclusions := []int{}
+		//remove the same notes from other cells in the row
+		for i := 0; i < len(cellSolutions); i++ {
+			s := cellSolutions[i]
+			for row := 0; row < 9; row++ {
+				//skip the cells that have the pairs in
+				if contains(s.Indexes, row) {
+					continue
+				}
+
+				//check whether this note has any number from the pair
+				if notes[row][column]&s.Number > 0 {
+					exclusions = append(exclusions, row)
+				}
+			}
+
+			//only return this exclusion solution if >0 cells can have exclusions applied
+			if len(exclusions) > 0 {
+				matchRefs := []CellRef{}
+				for i := 0; i < len(s.Indexes); i++ {
+					matchRefs = append(matchRefs, CellRef{s.Indexes[i], column})
+				}
+				exclRefs := []CellRef{}
+				for i := 0; i < len(exclusions); i++ {
+					exclRefs = append(exclRefs, CellRef{exclusions[i], column})
+				}
+				cellExclusions = append(cellExclusions, CellExclusion{s.Number, matchRefs, exclRefs, "Naked Pairs"})
+			}
+		}
+	}
+
+	//search block for naked pairs
+	for block := 0; block < 9; block++ {
+		cells := convertBlockToNineCells(notes, block)
+		cellSolutions := findNakedPairInNineCells(cells)
+		if len(cellSolutions) == 0 {
+			continue
+		}
+
+		rowOffset := 3 * (block / 3)
+		columnOffset := 3 * (block % 3)
+
+		exclusions := []int{}
+		//remove the same notes from other cells in the row
+		for i := 0; i < len(cellSolutions); i++ {
+			s := cellSolutions[i]
+			for cellIndex := 0; cellIndex < 9; cellIndex++ {
+
+				//skip the cells that have the pairs in
+				if contains(s.Indexes, cellIndex) {
+					continue
+				}
+
+				row := rowOffset + cellIndex/3
+				column := columnOffset + cellIndex%3
+
+				//check whether this note has any number from the pair
+				if notes[row][column]&s.Number > 0 {
+					exclusions = append(exclusions, cellIndex)
+				}
+			}
+
+			//only return this exclusion solution if >0 cells can have exclusions applied
+			if len(exclusions) > 0 {
+				matchRefs := []CellRef{}
+				for i := 0; i < len(s.Indexes); i++ {
+					row := rowOffset + s.Indexes[i]/3
+					column := columnOffset + s.Indexes[i]%3
+					matchRefs = append(matchRefs, CellRef{row, column})
+				}
+				exclRefs := []CellRef{}
+				for i := 0; i < len(exclusions); i++ {
+					row := rowOffset + exclusions[i]/3
+					column := columnOffset + exclusions[i]%3
+					exclRefs = append(exclRefs, CellRef{row, column})
+				}
+				cellExclusions = append(cellExclusions, CellExclusion{s.Number, matchRefs, exclRefs, "Naked Pairs"})
+			}
+		}
+	}
+
+	return cellExclusions
+}
+
+//findNakedPairInNineCells finds naked pairs in nine cells
+func findNakedPairInNineCells(cells [9]int) []RelativeCellSolutions {
+	var solutions = []RelativeCellSolutions{}
+	var pairs = []int{}
+	for i := 0; i < 9; i++ {
+		if contains(pairs, cells[i]) || countNumbersInNote(cells[i]) != 2 {
+			continue
+		}
+
+		//avoid process this pair again
+		pairs = append(pairs, cells[i])
+
+		//found a cell with a pair of note numbers
+		var indexes = []int{i}
+
+		//look for another pair match
+		for k := i + 1; k < 9; k++ {
+			if cells[i] != cells[k] {
+				continue
+			}
+			indexes = append(indexes, k)
+		}
+
+		//discard this solutiom if more than two pairs are found
+		if len(indexes) == 2 {
+			solutions = append(solutions, RelativeCellSolutions{indexes, cells[i]})
+		}
+	}
+	return solutions
+}
+
+//contains indicates whether the array contains the specified value
+func contains(array []int, value int) bool {
+	for _, item := range array {
+		if item == value {
+			return true
+		}
+	}
+	return false
 }
 
 // countNumbersInNote indicates how many numbers (bits) are set in the note

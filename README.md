@@ -8,6 +8,7 @@ A package comprising different solvers for Soduku puzzles.
 The current implemented solvers are:
 * Naked Singles
 * Hidden Singles
+* Naked Pairs
 
 # Running the Solver
 

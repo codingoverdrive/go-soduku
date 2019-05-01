@@ -106,3 +106,36 @@ func Test_recalculateBoardNotes(t *testing.T) {
 		}
 	}
 }
+
+func Test_containsNumberInNote(t *testing.T) {
+	type TestData struct {
+		number   int
+		digit    int
+		expected bool
+	}
+
+	var testData = []TestData{
+		TestData{0x1ff, 1, true},
+		TestData{0x1ff, 2, true},
+		TestData{0x1ff, 3, true},
+		TestData{0x1ff, 4, true},
+		TestData{0x1ff, 5, true},
+		TestData{0x1ff, 6, true},
+		TestData{0x1ff, 7, true},
+		TestData{0x1ff, 8, true},
+		TestData{0x1ff, 9, true},
+		TestData{0x01, 1, true},
+		TestData{0x05, 1, true},
+		TestData{0x05, 3, true},
+	}
+
+	for i := 0; i < len(testData); i++ {
+		number := testData[i].number
+		digit := testData[i].digit
+		expected := testData[i].expected
+		actual := containsNumberInNote(number, digit)
+		if actual != expected {
+			t.Errorf("containsNumberInNote for %d in %d should be set but was not", digit, number)
+		}
+	}
+}

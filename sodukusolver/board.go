@@ -35,6 +35,20 @@ var notes = [9][9]int{
 	{0, 0, 0, 0, 0, 0, 0, 0, 0},
 }
 
+//holds the current notes that have been eliminated by previous solutions
+//ths is because some strategies identify the values that cannot be in unsolved cells
+var exclusions = [9][9]int{
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+}
+
 //StrategyResult indicates the success or failure of a strategy
 //and how many solutions were found for the strategy
 type StrategyResult struct {
@@ -51,10 +65,39 @@ func applyCellStrategy(strategy CellStrategy, duration *time.Duration) StrategyR
 	solutions := strategy(notes)
 	elapsed := time.Since(startTime)
 	if len(solutions) > 0 {
-		applyCellSolutions(solutions)
+		for i := 0; i < len(solutions); i++ {
+			s := solutions[i]
+			board[s.Row][s.Column] = s.Number
+			print("Found ", s.Type, " [", s.Number, "] at ", s.Location, " ", getBoardRowLetter(s.Row), (1 + s.Column), "\n")
+		}
+		notes = recalculateBoardNotes(board)
 	}
 	*duration = *duration + elapsed
 	return StrategyResult{len(solutions) > 0, len(solutions)}
+}
+
+//ExclusionStrategy a solver strategy the eliminates/excludes notes that cannot be a cell solution
+type ExclusionStrategy func([9][9]int) []CellExclusion
+
+//applyCellExclusionStrategy applies a cell notes exclusion strategy and returns a result
+func applyCellExclusionStrategy(strategy ExclusionStrategy, duration *time.Duration) StrategyResult {
+	startTime := time.Now()
+	exclusionSolutions := findNakedPairs(notes)
+	elapsed := time.Since(startTime)
+	if len(exclusionSolutions) > 0 {
+		for i := 0; i < len(exclusionSolutions); i++ {
+			s := exclusionSolutions[i]
+			print("Found ", s.strategy, " [", getNotesAsDigitString(s.number), "] in ", getCellRefsAsString(s.matches), "\n")
+			print("Removing from ", getCellRefsAsString(s.exclusions), "\n")
+			exclRefs := s.exclusions
+			for k := 0; k < len(exclRefs); k++ {
+				exclusions[exclRefs[k].Row][exclRefs[k].Column] = exclusions[exclRefs[k].Row][exclRefs[k].Column] | s.number
+			}
+		}
+		notes = recalculateBoardNotes(board)
+	}
+	*duration = *duration + elapsed
+	return StrategyResult{len(exclusionSolutions) > 0, len(exclusionSolutions)}
 }
 
 //SolveBoard solves the board
@@ -87,6 +130,12 @@ func SolveBoard() {
 
 		//findHiddenSingles
 		result = applyCellStrategy(findHiddenSingles, &duration)
+		if result.success {
+			passCount += result.solutions - 1
+			continue
+		}
+
+		result = applyCellExclusionStrategy(findNakedPairs, &duration)
 		if result.success {
 			passCount += result.solutions - 1
 			continue
@@ -199,7 +248,8 @@ func recalculateBoardNotes(board [9][9]int) [9][9]int {
 				colSolvedNumbers := getSolvedNumbersInNineCells(convertColumnToNineCells(board, column))
 				blockIndex := 3*(row/3) + column/3
 				blockSolvedNumbers := getSolvedNumbersInNineCells(convertBlockToNineCells(board, blockIndex))
-				newNotes[row][column] = 0x1ff ^ (rowSolvedNumbers | colSolvedNumbers | blockSolvedNumbers)
+				exclusionNumbers := exclusions[row][column]
+				newNotes[row][column] = 0x1ff ^ (rowSolvedNumbers | colSolvedNumbers | blockSolvedNumbers | exclusionNumbers)
 			} else {
 				//cell already solved
 				newNotes[row][column] = 0
@@ -256,22 +306,6 @@ func getSolvedNumbersInNineCells(cells [9]int) int {
 	return numbersSet
 }
 
-//applyCellSolutions applies the solution(s) to the board and
-//then recalculates the notes (as a result of changes to the board)
-func applyCellSolutions(solutions []AbsoluteCellSolution) {
-	if len(solutions) == 0 {
-		return
-	}
-
-	for i := 0; i < len(solutions); i++ {
-		s := solutions[i]
-		board[s.Row][s.Column] = s.Number
-		print("Found ", s.Type, " [", s.Number, "] at ", s.Location, " ", getBoardRowLetter(s.Row), (1 + s.Column), "\n")
-	}
-
-	notes = recalculateBoardNotes(board)
-}
-
 // IsSolved return true if the board is solved
 func IsSolved() bool {
 	for i := 0; i < 9; i++ {
@@ -282,4 +316,36 @@ func IsSolved() bool {
 		}
 	}
 	return true
+}
+
+//getCellRefsAsString prints the cells refs in a comma separated list
+func getCellRefsAsString(cellRefs []CellRef) string {
+	var s string
+	for i := 0; i < len(cellRefs); i++ {
+		if i > 0 {
+			s = s + ", "
+		}
+		s = s + getBoardRowLetter(cellRefs[i].Row) + fmt.Sprintf("%d", 1+cellRefs[i].Column)
+	}
+	return s
+}
+
+// GetNotesAsDigitString gets the notes as a single comma separated string
+func getNotesAsDigitString(note int) string {
+	s := ""
+	for i := 1; i <= 9; i++ {
+		if containsNumberInNote(note, i) {
+			if len(s) > 0 {
+				s = s + ","
+			}
+			s = s + fmt.Sprintf("%d", i)
+		}
+	}
+	return s
+}
+
+//containsNumberInNote indicates whether the note contains the specified number
+func containsNumberInNote(note int, number int) bool {
+	numberAsBit := (int)(math.Pow(2, (float64)(number-1)))
+	return note&numberAsBit == numberAsBit
 }
