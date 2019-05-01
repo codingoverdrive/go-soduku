@@ -101,8 +101,17 @@ func applyCellExclusionStrategy(strategy ExclusionStrategy, duration *time.Durat
 }
 
 //SolveBoard solves the board
-func SolveBoard() {
+func SolveBoard(newBoard [9][9]int) {
 	print("Soduku Solver\n\n")
+
+	for row := 0; row < 9; row++ {
+		for column := 0; column < 9; column++ {
+			board[row][column] = newBoard[row][column]
+		}
+	}
+
+	//initialise the notes
+	notes = recalculateBoardNotes(board)
 
 	print("\nInitial Board\n")
 	PrintBoard(false)
@@ -152,18 +161,6 @@ func SolveBoard() {
 		print("\nUnsolved after ", fmt.Sprintf("%s", duration), "\n")
 		print("Stopping\n\n")
 	}
-}
-
-//InitaliseBoard initialises the board
-func InitaliseBoard(newBoard [9][9]int) {
-	for row := 0; row < 9; row++ {
-		for column := 0; column < 9; column++ {
-			board[row][column] = newBoard[row][column]
-		}
-	}
-
-	//initialise the notes
-	notes = recalculateBoardNotes(board)
 }
 
 //PrintBoard outputs the current state of the board
@@ -330,7 +327,7 @@ func getCellRefsAsString(cellRefs []CellRef) string {
 	return s
 }
 
-// GetNotesAsDigitString gets the notes as a single comma separated string
+//getNotesAsDigitString gets the notes as a single comma separated string
 func getNotesAsDigitString(note int) string {
 	s := ""
 	for i := 1; i <= 9; i++ {

@@ -17,7 +17,5 @@ func main() {
 		{0, 0, 0, 0, 4, 0, 9, 0, 3},
 		{0, 0, 0, 0, 0, 0, 0, 6, 0},
 	}
-
-	sodukusolver.InitaliseBoard(board)
-	sodukusolver.SolveBoard()
+	sodukusolver.SolveBoard(board)
 }
