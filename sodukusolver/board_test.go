@@ -134,8 +134,6 @@ func Test_containsNumberInNote(t *testing.T) {
 		digit := testData[i].digit
 		expected := testData[i].expected
 		actual := containsNumberInNote(number, digit)
-		if actual != expected {
-			t.Errorf("containsNumberInNote for %d in %d should be set but was not", digit, number)
-		}
+		assert.Equal(t, expected, actual, "Invalid value for containsNumberInNote")
 	}
 }
