@@ -59,16 +59,16 @@ type StrategyResult struct {
 //CellStrategy a solver strategy that returns an array of AbsoluteCellSolutions
 type CellStrategy func([9][9]int) []AbsoluteCellSolution
 
-//applyCellStrategy applies a cell strategy and returns a result
-func applyCellStrategy(strategy CellStrategy, duration *time.Duration) StrategyResult {
+//applyCellSolutionStrategy applies a cell strategy and returns a result
+func applyCellSolutionStrategy(strategy CellStrategy, duration *time.Duration) StrategyResult {
 	startTime := time.Now()
 	solutions := strategy(notes)
 	elapsed := time.Since(startTime)
 	if len(solutions) > 0 {
 		for i := 0; i < len(solutions); i++ {
 			s := solutions[i]
-			board[s.Row][s.Column] = s.Number
-			print("Found ", s.Type, " [", s.Number, "] at ", s.Location, " ", getBoardRowLetter(s.Row), (1 + s.Column), "\n")
+			board[s.row][s.column] = s.number
+			print("Found ", s.strategy, " [", s.number, "] at ", s.location, " ", getBoardRowLetter(s.row), (1 + s.column), "\n")
 		}
 		notes = recalculateBoardNotes(board)
 	}
@@ -91,7 +91,7 @@ func applyCellExclusionStrategy(strategy ExclusionStrategy, duration *time.Durat
 			print("Removing from ", getCellRefsAsString(s.exclusions), "\n")
 			exclRefs := s.exclusions
 			for k := 0; k < len(exclRefs); k++ {
-				exclusions[exclRefs[k].Row][exclRefs[k].Column] = exclusions[exclRefs[k].Row][exclRefs[k].Column] | s.number
+				exclusions[exclRefs[k].row][exclRefs[k].column] = exclusions[exclRefs[k].row][exclRefs[k].column] | s.number
 			}
 		}
 		notes = recalculateBoardNotes(board)
@@ -114,9 +114,9 @@ func SolveBoard(newBoard [9][9]int) {
 	notes = recalculateBoardNotes(board)
 
 	print("\nInitial Board\n")
-	PrintBoard(false)
+	printBoard(false)
 	print("\nWith Notes\n")
-	PrintBoard(true)
+	printBoard(true)
 	print("\n")
 
 	//keep track how how long the (full) solution takes to compute
@@ -131,14 +131,14 @@ func SolveBoard(newBoard [9][9]int) {
 		print("Pass ", passCount, "\n")
 
 		//findNakedSingles
-		result := applyCellStrategy(findNakedSingles, &duration)
+		result := applyCellSolutionStrategy(findNakedSingles, &duration)
 		if result.success {
 			passCount += result.solutions - 1
 			continue
 		}
 
 		//findHiddenSingles
-		result = applyCellStrategy(findHiddenSingles, &duration)
+		result = applyCellSolutionStrategy(findHiddenSingles, &duration)
 		if result.success {
 			passCount += result.solutions - 1
 			continue
@@ -153,9 +153,9 @@ func SolveBoard(newBoard [9][9]int) {
 		break
 	}
 	print("\n")
-	PrintBoard(true)
+	printBoard(true)
 
-	if IsSolved() {
+	if isSolved() {
 		print("\nSolved in ", fmt.Sprintf("%s", duration), "\n")
 	} else {
 		print("\nUnsolved after ", fmt.Sprintf("%s", duration), "\n")
@@ -163,9 +163,9 @@ func SolveBoard(newBoard [9][9]int) {
 	}
 }
 
-//PrintBoard outputs the current state of the board
+//printBoard outputs the current state of the board
 //The showNotes parameter determines whether the notes are also displayed
-func PrintBoard(showNotes bool) {
+func printBoard(showNotes bool) {
 	verticalBlockSeparator := "I"
 	print("       1       2       3       4       5       6       7       8       9\n")
 	for row := 0; row < 9; row++ {
@@ -303,8 +303,8 @@ func getSolvedNumbersInNineCells(cells [9]int) int {
 	return numbersSet
 }
 
-// IsSolved return true if the board is solved
-func IsSolved() bool {
+// isSolved return true if the board is solved
+func isSolved() bool {
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
 			if board[i][j] == 0 {
@@ -322,7 +322,7 @@ func getCellRefsAsString(cellRefs []CellRef) string {
 		if i > 0 {
 			s = s + ", "
 		}
-		s = s + getBoardRowLetter(cellRefs[i].Row) + fmt.Sprintf("%d", 1+cellRefs[i].Column)
+		s = s + getBoardRowLetter(cellRefs[i].row) + fmt.Sprintf("%d", 1+cellRefs[i].column)
 	}
 	return s
 }

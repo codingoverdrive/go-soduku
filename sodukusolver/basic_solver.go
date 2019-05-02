@@ -4,30 +4,32 @@ import "math"
 
 //RelativeCellSolution represents a solution number and its index position within 9 cells
 type RelativeCellSolution struct {
-	Index  int
-	Number int
+	index  int
+	number int
 }
 
 // AbsoluteCellSolution represents a solution number in a cell and whether found in a row, column or block (location)
 type AbsoluteCellSolution struct {
-	Row      int
-	Column   int
-	Number   int
-	Type     string
-	Location string
+	row      int
+	column   int
+	number   int
+	strategy string
+	location string
 }
 
 //RelativeCellSolutions represents a solution number and its index position within 9 cells
 type RelativeCellSolutions struct {
-	Indexes []int
-	Number  int
+	indexes []int
+	number  int
 }
 
+//CellRef defines a coordinate for a cell
 type CellRef struct {
-	Row    int
-	Column int
+	row    int
+	column int
 }
 
+//CellExclusion defines exclusions identified by a strategy
 type CellExclusion struct {
 	number     int
 	matches    []CellRef
@@ -66,7 +68,7 @@ func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 		rowSolutions := findHiddenSinglesInNineCells(convertRowToNineCells(notes, row))
 		for i := 0; i < len(rowSolutions); i++ {
 			s := rowSolutions[i]
-			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, s.Index, s.Number, "Hidden Single", "Cell"})
+			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, s.index, s.number, "Hidden Single", "Cell"})
 		}
 	}
 
@@ -75,7 +77,7 @@ func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 		rowSolutions := findHiddenSinglesInNineCells(convertColumnToNineCells(notes, column))
 		for i := 0; i < len(rowSolutions); i++ {
 			s := rowSolutions[i]
-			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{s.Index, column, s.Number, "Hidden Single", "Cell"})
+			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{s.index, column, s.number, "Hidden Single", "Cell"})
 		}
 	}
 
@@ -86,11 +88,11 @@ func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 			s := rowSolutions[i]
 
 			startRow := 3 * (block / 3)
-			row := startRow + s.Index/3
+			row := startRow + s.index/3
 			startColumn := 3 * (block % 3)
-			column := startColumn + s.Index%3
+			column := startColumn + s.index%3
 
-			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, column, s.Number, "Hidden Single", "Cell"})
+			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, column, s.number, "Hidden Single", "Cell"})
 		}
 	}
 
@@ -151,12 +153,12 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 			s := cellSolutions[i]
 			for column := 0; column < 9; column++ {
 				//skip the cells that have the pairs in
-				if contains(s.Indexes, column) {
+				if contains(s.indexes, column) {
 					continue
 				}
 
 				//check whether this note has any number from the pair
-				if notes[row][column]&s.Number > 0 {
+				if notes[row][column]&s.number > 0 {
 					exclusions = append(exclusions, column)
 				}
 			}
@@ -164,14 +166,14 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 			//only return this exclusion solution if >0 cells can have exclusions applied
 			if len(exclusions) > 0 {
 				matchRefs := []CellRef{}
-				for i := 0; i < len(s.Indexes); i++ {
-					matchRefs = append(matchRefs, CellRef{row, s.Indexes[i]})
+				for i := 0; i < len(s.indexes); i++ {
+					matchRefs = append(matchRefs, CellRef{row, s.indexes[i]})
 				}
 				exclRefs := []CellRef{}
 				for i := 0; i < len(exclusions); i++ {
 					exclRefs = append(exclRefs, CellRef{row, exclusions[i]})
 				}
-				cellExclusions = append(cellExclusions, CellExclusion{s.Number, matchRefs, exclRefs, "Naked Pairs"})
+				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, exclRefs, "Naked Pairs"})
 			}
 		}
 	}
@@ -190,12 +192,12 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 			s := cellSolutions[i]
 			for row := 0; row < 9; row++ {
 				//skip the cells that have the pairs in
-				if contains(s.Indexes, row) {
+				if contains(s.indexes, row) {
 					continue
 				}
 
 				//check whether this note has any number from the pair
-				if notes[row][column]&s.Number > 0 {
+				if notes[row][column]&s.number > 0 {
 					exclusions = append(exclusions, row)
 				}
 			}
@@ -203,14 +205,14 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 			//only return this exclusion solution if >0 cells can have exclusions applied
 			if len(exclusions) > 0 {
 				matchRefs := []CellRef{}
-				for i := 0; i < len(s.Indexes); i++ {
-					matchRefs = append(matchRefs, CellRef{s.Indexes[i], column})
+				for i := 0; i < len(s.indexes); i++ {
+					matchRefs = append(matchRefs, CellRef{s.indexes[i], column})
 				}
 				exclRefs := []CellRef{}
 				for i := 0; i < len(exclusions); i++ {
 					exclRefs = append(exclRefs, CellRef{exclusions[i], column})
 				}
-				cellExclusions = append(cellExclusions, CellExclusion{s.Number, matchRefs, exclRefs, "Naked Pairs"})
+				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, exclRefs, "Naked Pairs"})
 			}
 		}
 	}
@@ -233,7 +235,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 			for cellIndex := 0; cellIndex < 9; cellIndex++ {
 
 				//skip the cells that have the pairs in
-				if contains(s.Indexes, cellIndex) {
+				if contains(s.indexes, cellIndex) {
 					continue
 				}
 
@@ -241,7 +243,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 				column := columnOffset + cellIndex%3
 
 				//check whether this note has any number from the pair
-				if notes[row][column]&s.Number > 0 {
+				if notes[row][column]&s.number > 0 {
 					exclusions = append(exclusions, cellIndex)
 				}
 			}
@@ -249,9 +251,9 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 			//only return this exclusion solution if >0 cells can have exclusions applied
 			if len(exclusions) > 0 {
 				matchRefs := []CellRef{}
-				for i := 0; i < len(s.Indexes); i++ {
-					row := rowOffset + s.Indexes[i]/3
-					column := columnOffset + s.Indexes[i]%3
+				for i := 0; i < len(s.indexes); i++ {
+					row := rowOffset + s.indexes[i]/3
+					column := columnOffset + s.indexes[i]%3
 					matchRefs = append(matchRefs, CellRef{row, column})
 				}
 				exclRefs := []CellRef{}
@@ -260,7 +262,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 					column := columnOffset + exclusions[i]%3
 					exclRefs = append(exclRefs, CellRef{row, column})
 				}
-				cellExclusions = append(cellExclusions, CellExclusion{s.Number, matchRefs, exclRefs, "Naked Pairs"})
+				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, exclRefs, "Naked Pairs"})
 			}
 		}
 	}
