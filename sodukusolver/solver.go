@@ -112,12 +112,6 @@ func initialiseSolution(initialBoard [9][9]int) Solution {
 func SolveBoard(board [9][9]int) Solution {
 	solution := initialiseSolution(board)
 
-	// print("\nInitial Board\n")
-	// printBoard(false)
-	// print("\nWith Notes\n")
-	// printBoard(true)
-	// print("\n")
-
 	//keep applying the different solution strategies until the puzzle is solved
 	for {
 		//findNakedSingles

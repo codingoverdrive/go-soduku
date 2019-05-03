@@ -26,6 +26,7 @@ func main() {
 	//compute the solution
 	solution := sodukusolver.SolveBoard(board)
 
+	//show each solution step
 	for i := 0; i < len(solution.Steps); i++ {
 		if i == 0 {
 			//show the initial state of the board
