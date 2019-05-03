@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var emptyBoard = [9][9]int{
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+}
+
 //used to test the row, column and block conversions to 9 cells
 var invalidTestBoard = [9][9]int{
 	{1, 2, 3, 4, 5, 6, 7, 8, 9},
@@ -58,18 +70,8 @@ func Test_getSolvedNumbersInNineCells(t *testing.T) {
 }
 
 func Test_recalculateBoardNotes(t *testing.T) {
-	board1 := [9][9]int{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0},
-	}
-	notes1 := recalculateBoardNotes(board1)
+	board1 := emptyBoard
+	notes1 := recalculateBoardNotes(board1, emptyBoard)
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
 			assert.Equal(t, 0x1ff, notes1[row][column], "Unexpected notes value")
@@ -99,7 +101,7 @@ func Test_recalculateBoardNotes(t *testing.T) {
 		{0x13, 0x81, 0x43, 0x62, 0x0, 0x40, 0x0, 0x92, 0x0},
 		{0x11b, 0x18d, 0x14f, 0x46, 0x154, 0x144, 0x9b, 0x0, 0xb},
 	}
-	notes2 := recalculateBoardNotes(board2)
+	notes2 := recalculateBoardNotes(board2, emptyBoard)
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
 			assert.Equal(t, expectedNotes[row][column], notes2[row][column], "Unexpected notes value")
