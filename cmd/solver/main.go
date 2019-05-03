@@ -33,7 +33,7 @@ func main() {
 			sodukusolver.PrintBoard(solution.InitialBoard, [9][9]int{}, false)
 			print("\n\n")
 			//show the board again, but with the notes populated as well
-			print("Board with Notes\n")
+			print("With Notes\n")
 			sodukusolver.PrintBoard(solution.InitialBoard, solution.InitialNotes, true)
 			print("\n\n")
 		}
@@ -43,6 +43,7 @@ func main() {
 	}
 
 	//show the final state of the board
+	print("\n\n")
 	finalStep := solution.Steps[len(solution.Steps)-1]
 	sodukusolver.PrintBoard(finalStep.Board, finalStep.Notes, false)
 
