@@ -149,14 +149,28 @@ func SolveBoard(board [9][9]int) Solution {
 //recalculateBoardNotes takes the board and generates a new set of notes
 //from the current solved cells
 func recalculateBoardNotes(board [9][9]int, exclusions [9][9]int) [9][9]int {
+	//pre-compute all the row,column and block solutions
+	rowSolved := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+	for row := 0; row < 9; row++ {
+		rowSolved[row] = getSolvedNumbersInNineCells(convertRowToNineCells(board, row))
+	}
+	columnSolved := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+	for column := 0; column < 9; column++ {
+		columnSolved[column] = getSolvedNumbersInNineCells(convertColumnToNineCells(board, column))
+	}
+	blockSolved := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+	for block := 0; block < 9; block++ {
+		blockSolved[block] = getSolvedNumbersInNineCells(convertBlockToNineCells(board, block))
+	}
+
 	var newNotes [9][9]int
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
 			if board[row][column] == 0 {
-				rowSolvedNumbers := getSolvedNumbersInNineCells(convertRowToNineCells(board, row))
-				colSolvedNumbers := getSolvedNumbersInNineCells(convertColumnToNineCells(board, column))
+				rowSolvedNumbers := rowSolved[row]
+				colSolvedNumbers := columnSolved[column]
 				blockIndex := 3*(row/3) + column/3
-				blockSolvedNumbers := getSolvedNumbersInNineCells(convertBlockToNineCells(board, blockIndex))
+				blockSolvedNumbers := blockSolved[blockIndex]
 				exclusionNumbers := exclusions[row][column]
 				newNotes[row][column] = 0x1ff ^ (rowSolvedNumbers | colSolvedNumbers | blockSolvedNumbers | exclusionNumbers)
 			} else {
