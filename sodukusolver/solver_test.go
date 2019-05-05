@@ -97,6 +97,8 @@ func Test_SolveBoard3(t *testing.T) {
 }
 
 /*
+//THIS TEST CANNOT CURRENTLY BE SOLVED
+
 func Test_SolveBoard4(t *testing.T) {
 	board := [9][9]int{
 		{0, 0, 0, 0, 0, 3, 0, 0, 0},

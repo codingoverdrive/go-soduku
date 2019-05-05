@@ -272,7 +272,7 @@ func findNakedPairExclusions(notes [9][9]int) []CellExclusion {
 	return cellExclusions
 }
 
-//findNakedPairsInNineCells the new one
+//findNakedPairsInNineCells finds naked pairs in nine cells
 func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	var solutions = []RelativeCellSolutions{}
 
@@ -321,38 +321,7 @@ func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	return solutions
 }
 
-// //findNakedPairsInNineCells the one one
-// func findNakedPairsInNineCells(cells [9]int) []RelativeCellSolutions {
-// 	var solutions = []RelativeCellSolutions{}
-// 	var pairs = []int{}
-// 	for i := 0; i < 9; i++ {
-// 		if contains(pairs, cells[i]) || countNumbersInNote(cells[i]) != 2 {
-// 			continue
-// 		}
-
-// 		//avoid process this pair again
-// 		pairs = append(pairs, cells[i])
-
-// 		//found a cell with a pair of note numbers
-// 		var indexes = []int{i}
-
-// 		//look for another pair match
-// 		for k := i + 1; k < 9; k++ {
-// 			if cells[i] != cells[k] {
-// 				continue
-// 			}
-// 			indexes = append(indexes, k)
-// 		}
-
-// 		//discard this solutiom if more than two pairs are found
-// 		if len(indexes) == 2 {
-// 			solutions = append(solutions, RelativeCellSolutions{indexes, cells[i]})
-// 		}
-// 	}
-// 	return solutions
-// }
-
-//findHiddenPairExclusions
+//findHiddenPairExclusions finds (notes) exclusions from hidden pairs
 func findHiddenPairExclusions(notes [9][9]int) []CellExclusion {
 	strategyName := "Hidden Pairs"
 	var cellExclusions = []CellExclusion{}
@@ -480,62 +449,3 @@ func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	}
 	return solutions
 }
-
-// func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
-// 	var solutions = []RelativeCellSolutions{}
-
-// 	//keep track of the pairs marked to be ignored
-// 	ignorePairs := []int{}
-
-// 	//scan all the cells looking for matching (hidden) pairs
-// 	for x := 0; x < 9; x++ {
-// 		//skip cells that don't have at least two numbers in them
-// 		if notes[x] == 0 || countNumbersInNote(notes[x]) < 2 {
-// 			continue
-// 		}
-
-// 		for y := x + 1; y < 9; y++ {
-// 			if notes[y] != 0 && getCommonNumberCount(notes[x], notes[y]) >= 2 {
-// 				commonDigits := notes[x] & notes[y]
-
-// 				//don't process a pair that has already been marked for ignoring
-// 				if contains(ignorePairs, commonDigits) {
-// 					break
-// 				}
-
-// 				//check that this pair doesn't exist in any other cell
-// 				foundInThirdCell := false
-// 				for z := y + 1; z < 9; z++ {
-// 					if notes[z]&commonDigits == commonDigits {
-// 						foundInThirdCell = true
-// 						break
-// 					}
-// 				}
-
-// 				if foundInThirdCell {
-// 					ignorePairs = append(ignorePairs, commonDigits)
-// 					break
-// 				} else {
-// 					//check that no other cells have either of the common digits
-// 					addPair := true
-// 					for z := 0; z < 9; z++ {
-// 						if z == x || z == y {
-// 							continue
-// 						}
-
-// 						if notes[z]&commonDigits > 0 {
-// 							addPair = false
-// 							break
-// 						}
-// 					}
-
-// 					//add this pair as a solution
-// 					if addPair {
-// 						solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits})
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return solutions
-// }
