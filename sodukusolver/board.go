@@ -25,7 +25,7 @@ func PrintSolutionSteps(solution Solution, showBoard bool) {
 			PrintBoard(step.Board, step.Notes, true)
 			print("\n")
 		}
-		print("Pass ", (i + 1), " ", step.Description, "\n")
+		print("Pass ", fmt.Sprintf("%2d", i+1), " ", step.Description, "\n")
 	}
 	print("\n")
 }

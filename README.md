@@ -1,17 +1,75 @@
 # go-soduku
 Soduku Solver in Go
 
-A package comprising different solvers for Soduku puzzles.
+A package comprising different solver strategies for Soduku puzzles.
 
-# Solvers
+# Implemented Solver Strategies
 
-The current implemented strategies are:
+The following strategies are implemented:
 * Naked Singles
 * Hidden Singles
 * Hidden Pairs
 * Naked Pairs
 
-# Running the Solver
+# Using the Solver package in your own application
+
+Import the sodukusolver package
+```
+import "github.com/codingoverdrive/go-soduku/sodukusolver"
+```
+
+And create a board and pass it to the SolveBoard() function. Note that zero denotes unknown/unsolved cells
+
+```
+  //create a board
+	var board = [9][9]int{
+		{0, 2, 0, 0, 0, 0, 0, 0, 0},
+		{7, 0, 5, 0, 2, 0, 0, 0, 0},
+		{8, 0, 0, 9, 0, 5, 0, 7, 0},
+		{3, 7, 0, 5, 0, 2, 6, 0, 0},
+		{6, 5, 0, 0, 0, 0, 0, 1, 8},
+		{0, 0, 8, 4, 0, 6, 0, 3, 5},
+		{0, 6, 0, 1, 0, 8, 0, 0, 7},
+		{0, 0, 0, 0, 4, 0, 9, 0, 3},
+		{0, 0, 0, 0, 0, 0, 0, 6, 0},
+	}
+
+	//compute the solution
+	solution := sodukusolver.SolveBoard(board)
+```
+
+The solver works by applying different solution strategies repeatedly until the puzzle is solved. 
+It applies the simplest strategies first, before trying more complicated strategies if those fail. 
+As soon as a strategy yields a solution for a cell, or eliminates notes from unsolved cells, the solver
+returns to the simplest strategy again.
+
+```
+	//keep applying the different solution strategies until the puzzle is solved
+	for {
+		//findNakedSingles
+		result := applyCellSolutionStrategy(findNakedSingles, &solution)
+		if result.success {
+			continue
+		}
+
+		//findHiddenSingles
+		result = applyCellSolutionStrategy(findHiddenSingles, &solution)
+		if result.success {
+			continue
+		}
+    ...
+
+```
+
+The solver will stop either when the board is solved, or the strategies yield no further solutions. 
+The solution includes the final board and the steps (and strategies) taken to yield the final board state.
+
+The solver solves most (hard) puzzles using four basic strategies in less than 0.12ms (120us) on a MacBook Pro. 
+
+This project is a work in progress and more strategies will be added over time.
+
+
+# Running the solver locally
 
 Checkout the project from github
 
@@ -21,7 +79,7 @@ cd cmd/solver
 go run main.go
 ```
 
-To solve a different puzzle, modify the board two dimensional array in cmd/solver/main.go
+To solve a different puzzle, modify the board two dimensional array in `cmd/solver/main.go` or add your own tests in `sodukusolver/solver_test.go`
 
 The 9x9 array represents a soduku board
 
@@ -66,8 +124,6 @@ Initial Soduku board
    I       |       |       I       |       |       I       |       |       I
    =========================================================================
 
-
-With Notes
        1       2       3       4       5       6       7       8       9
    =========================================================================
    I  1..  |       |  1.3  I  ..3  |  1.3  |  1.3  I  1.3  |  ...  |  1..  I
@@ -107,63 +163,61 @@ With Notes
    I  ..9  |  .89  |  7.9  I  7..  |  7.9  |  7.9  I  .8.  |       |  ...  I
    =========================================================================
 
-
-Pass 1 Found Naked Single [7] at Cell H6
-Pass 2 Found Hidden Single [8] at Cell D5
-Pass 3 Found Hidden Single [6] at Cell H4
-Pass 4 Found Hidden Single [7] at Cell I3
-Pass 5 Found Hidden Single [6] at Cell B9
-Pass 6 Found Hidden Single [1] at Cell D3
-Pass 7 Found Hidden Single [2] at Cell I4
-Pass 8 Found Hidden Single [1] at Cell F5
-Pass 9 Found Naked Single [9] at Cell F2
-Pass 10 Found Naked Single [2] at Cell H3
-Pass 11 Found Naked Single [4] at Cell E3
-Pass 12 Found Naked Single [2] at Cell F1
-Pass 13 Found Naked Single [7] at Cell F7
-Pass 14 Found Naked Single [2] at Cell E7
-Pass 15 Found Hidden Single [9] at Cell B8
-Pass 16 Found Hidden Single [2] at Cell C9
-Pass 17 Found Hidden Single [2] at Cell G8
-Pass 18 Found Naked Single [4] at Cell D8
-Pass 19 Found Naked Single [9] at Cell D9
+Pass  1 Found Naked Single [7] at H6
+Pass  2 Found Hidden Single [8] at D5
+Pass  3 Found Hidden Single [6] at H4
+Pass  4 Found Hidden Single [7] at I3
+Pass  5 Found Hidden Single [6] at B9
+Pass  6 Found Hidden Single [1] at D3
+Pass  7 Found Hidden Single [2] at I4
+Pass  8 Found Hidden Single [1] at F5
+Pass  9 Found Naked Single [9] at F2
+Pass 10 Found Naked Single [2] at H3
+Pass 11 Found Naked Single [4] at E3
+Pass 12 Found Naked Single [2] at F1
+Pass 13 Found Naked Single [7] at F7
+Pass 14 Found Naked Single [2] at E7
+Pass 15 Found Hidden Single [9] at B8
+Pass 16 Found Hidden Single [2] at C9
+Pass 17 Found Hidden Single [2] at G8
+Pass 18 Found Naked Single [4] at D8
+Pass 19 Found Naked Single [9] at D9
 Pass 20 Found Naked Pairs [3,6] in C3, C5, Removing [3,6] from C2, C7
 Pass 21 Found Naked Pairs [3,9] in E6, I6, Removing [3,9] from A6, B6
 Pass 22 Found Naked Pairs [1,4] in A6, A9, Removing [1,4] from A1, A7
 Pass 23 Found Naked Pairs [1,4] in A9, C7, Removing [1,4] from A7, B7
-Pass 24 Found Naked Single [9] at Cell A1
-Pass 25 Found Hidden Single [9] at Cell G3
-Pass 26 Found Hidden Single [3] at Cell G5
-Pass 27 Found Hidden Single [3] at Cell I2
-Pass 28 Found Naked Single [6] at Cell C5
-Pass 29 Found Naked Single [9] at Cell I6
-Pass 30 Found Naked Single [7] at Cell A5
-Pass 31 Found Naked Single [3] at Cell C3
-Pass 32 Found Naked Single [3] at Cell E6
-Pass 33 Found Naked Single [5] at Cell I5
-Pass 34 Found Naked Single [6] at Cell A3
-Pass 35 Found Naked Single [7] at Cell E4
-Pass 36 Found Naked Single [9] at Cell E5
-Pass 37 Found Hidden Single [8] at Cell I7
-Pass 38 Found Hidden Single [8] at Cell H2
-Pass 39 Found Naked Single [3] at Cell B7
-Pass 40 Found Naked Single [5] at Cell H8
-Pass 41 Found Naked Single [5] at Cell A7
-Pass 42 Found Naked Single [8] at Cell A8
-Pass 43 Found Naked Single [8] at Cell B4
-Pass 44 Found Naked Single [4] at Cell G7
-Pass 45 Found Naked Single [1] at Cell H1
-Pass 46 Found Naked Single [3] at Cell A4
-Pass 47 Found Naked Single [1] at Cell C7
-Pass 48 Found Naked Single [5] at Cell G1
-Pass 49 Found Naked Single [4] at Cell I1
-Pass 50 Found Naked Single [1] at Cell I9
-Pass 51 Found Naked Single [4] at Cell A9
-Pass 52 Found Naked Single [4] at Cell C2
-Pass 53 Found Naked Single [1] at Cell A6
-Pass 54 Found Naked Single [1] at Cell B2
-Pass 55 Found Naked Single [4] at Cell B6
-
+Pass 24 Found Naked Single [9] at A1
+Pass 25 Found Hidden Single [9] at G3
+Pass 26 Found Hidden Single [3] at G5
+Pass 27 Found Hidden Single [3] at I2
+Pass 28 Found Naked Single [6] at C5
+Pass 29 Found Naked Single [9] at I6
+Pass 30 Found Naked Single [7] at A5
+Pass 31 Found Naked Single [3] at C3
+Pass 32 Found Naked Single [3] at E6
+Pass 33 Found Naked Single [5] at I5
+Pass 34 Found Naked Single [6] at A3
+Pass 35 Found Naked Single [7] at E4
+Pass 36 Found Naked Single [9] at E5
+Pass 37 Found Hidden Single [8] at I7
+Pass 38 Found Hidden Single [8] at H2
+Pass 39 Found Naked Single [3] at B7
+Pass 40 Found Naked Single [5] at H8
+Pass 41 Found Naked Single [5] at A7
+Pass 42 Found Naked Single [8] at A8
+Pass 43 Found Naked Single [8] at B4
+Pass 44 Found Naked Single [4] at G7
+Pass 45 Found Naked Single [1] at H1
+Pass 46 Found Naked Single [3] at A4
+Pass 47 Found Naked Single [1] at C7
+Pass 48 Found Naked Single [5] at G1
+Pass 49 Found Naked Single [4] at I1
+Pass 50 Found Naked Single [1] at I9
+Pass 51 Found Naked Single [4] at A9
+Pass 52 Found Naked Single [4] at C2
+Pass 53 Found Naked Single [1] at A6
+Pass 54 Found Naked Single [1] at B2
+Pass 55 Found Naked Single [4] at B6
 
        1       2       3       4       5       6       7       8       9
    =========================================================================
@@ -204,5 +258,5 @@ Pass 55 Found Naked Single [4] at Cell B6
    I       |       |       I       |       |       I       |       |       I
    =========================================================================
 
-Solved in 111.27µs
+Solved in 114.082µs
 ```

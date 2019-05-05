@@ -54,7 +54,7 @@ func applyCellSolutionStrategy(strategy CellStrategy, solution *Solution) Strate
 	if len(solutions) > 0 {
 		for i := 0; i < len(solutions); i++ {
 			s := solutions[i]
-			description := "Found " + s.strategy + " [" + fmt.Sprintf("%d", s.number) + "] at " + s.location + " " + getBoardRowLetter(s.row) + fmt.Sprintf("%d", 1+s.column)
+			description := "Found " + s.strategy + " [" + fmt.Sprintf("%d", s.number) + "] at " + getBoardRowLetter(s.row) + fmt.Sprintf("%d", 1+s.column)
 
 			//create and add the solution step
 			step := SolutionStep{Strategy: s.strategy, Description: description, Board: solution.board, Notes: solution.notes}
