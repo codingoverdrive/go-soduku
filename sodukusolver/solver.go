@@ -28,6 +28,8 @@ type Solution struct {
 	Solved       bool
 	Elapsed      time.Duration
 	Steps        []SolutionStep
+	FinalBoard   [9][9]int
+	FinalNotes   [9][9]int
 	//unexported and used within the solver function to maintain state
 	board      [9][9]int
 	notes      [9][9]int
@@ -54,12 +56,13 @@ func applyCellSolutionStrategy(strategy CellStrategy, solution *Solution) Strate
 			s := solutions[i]
 			description := "Found " + s.strategy + " [" + fmt.Sprintf("%d", s.number) + "] at " + s.location + " " + getBoardRowLetter(s.row) + fmt.Sprintf("%d", 1+s.column)
 
+			//create and add the solution step
+			step := SolutionStep{Strategy: s.strategy, Description: description, Board: solution.board, Notes: solution.notes}
+			solution.Steps = append(solution.Steps, step)
+
 			//update the board and notes
 			solution.board[s.row][s.column] = s.number
 			solution.notes = recalculateBoardNotes(solution.board, solution.exclusions)
-
-			step := SolutionStep{Description: description, Board: solution.board, Notes: solution.notes}
-			solution.Steps = append(solution.Steps, step)
 		}
 	}
 
@@ -73,24 +76,26 @@ type ExclusionStrategy func([9][9]int) []CellExclusion
 //applyCellExclusionStrategy applies a cell notes exclusion strategy and returns a result
 func applyCellExclusionStrategy(strategy ExclusionStrategy, solution *Solution) StrategyResult {
 	startTime := time.Now()
-	exclusionSolutions := findNakedPairs(solution.notes)
+	exclusionSolutions := strategy(solution.notes)
 	elapsed := time.Since(startTime)
 	if len(exclusionSolutions) > 0 {
 		for i := 0; i < len(exclusionSolutions); i++ {
 			s := exclusionSolutions[i]
 			matchingPair := "[" + getNotesAsDigitString(s.number) + "]"
+			removeNumbers := "[" + getNotesAsDigitString(s.removeNumber) + "]"
 			description := "Found " + s.strategy + " " + matchingPair + " in " + getCellRefsAsString(s.matches)
-			description2 := "Removing " + matchingPair + " from " + getCellRefsAsString(s.exclusions)
+			description2 := "Removing " + removeNumbers + " from " + getCellRefsAsString(s.exclusions)
 			exclRefs := s.exclusions
 			for k := 0; k < len(exclRefs); k++ {
-				solution.exclusions[exclRefs[k].row][exclRefs[k].column] = solution.exclusions[exclRefs[k].row][exclRefs[k].column] | s.number
+				solution.exclusions[exclRefs[k].row][exclRefs[k].column] = solution.exclusions[exclRefs[k].row][exclRefs[k].column] | s.removeNumber
 			}
+
+			//create and add the solution step
+			step := SolutionStep{Strategy: s.strategy, Description: description + ", " + description2, Board: solution.board, Notes: solution.notes}
+			solution.Steps = append(solution.Steps, step)
 
 			//update the board and notes
 			solution.notes = recalculateBoardNotes(solution.board, solution.exclusions)
-
-			step := SolutionStep{Description: description + ", " + description2, Board: solution.board, Notes: solution.notes}
-			solution.Steps = append(solution.Steps, step)
 		}
 	}
 	solution.Elapsed = solution.Elapsed + elapsed
@@ -126,14 +131,24 @@ func SolveBoard(board [9][9]int) Solution {
 			continue
 		}
 
+		//find hidden pairs
+		result = applyCellExclusionStrategy(findHiddenPairExclusions, &solution)
+		if result.success {
+			continue
+		}
+
 		//find naked pairs
-		result = applyCellExclusionStrategy(findNakedPairs, &solution)
+		result = applyCellExclusionStrategy(findNakedPairExclusions, &solution)
 		if result.success {
 			continue
 		}
 
 		break
 	}
+
+	//set the final state
+	solution.FinalBoard = solution.board
+	solution.FinalNotes = solution.notes
 
 	solution.Solved = isSolved(solution.board)
 

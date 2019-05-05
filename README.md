@@ -5,9 +5,10 @@ A package comprising different solvers for Soduku puzzles.
 
 # Solvers
 
-The current implemented solvers are:
+The current implemented strategies are:
 * Naked Singles
 * Hidden Singles
+* Hidden Pairs
 * Naked Pairs
 
 # Running the Solver
