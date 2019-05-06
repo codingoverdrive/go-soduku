@@ -1,7 +1,5 @@
 package sodukusolver
 
-import "math"
-
 //RelativeCellSolution represents a solution number and its index position within 9 cells
 type RelativeCellSolution struct {
 	index  int
@@ -19,8 +17,9 @@ type AbsoluteCellSolution struct {
 
 //RelativeCellSolutions represents a solution number and its index position within 9 cells
 type RelativeCellSolutions struct {
-	indexes []int
-	number  int
+	indexes  []int
+	number   int
+	location string
 }
 
 //CellRef defines a coordinate for a cell
@@ -31,10 +30,11 @@ type CellRef struct {
 
 //CellExclusion defines exclusions identified by a strategy
 type CellExclusion struct {
-	number     int
-	matches    []CellRef
-	exclusions []CellRef
-	strategy   string
+	number       int
+	matches      []CellRef
+	removeNumber int
+	exclusions   []CellRef
+	strategy     string
 }
 
 //findNakedSingles identifies single value(s) in any cell on the board
@@ -137,12 +137,15 @@ func findHiddenSinglesInNineCells(notes [9]int) []RelativeCellSolution {
 	return solutions
 }
 
-func findNakedPairs(notes [9][9]int) []CellExclusion {
+//findNakedPairExclusions
+func findNakedPairExclusions(notes [9][9]int) []CellExclusion {
+	strategyName := "Naked Pairs"
 	var cellExclusions = []CellExclusion{}
+
 	//search rows for naked pairs
 	for row := 0; row < 9; row++ {
 		cells := convertRowToNineCells(notes, row)
-		cellSolutions := findNakedPairInNineCells(cells)
+		cellSolutions := findNakedPairsInNineCells(cells)
 		if len(cellSolutions) == 0 {
 			continue
 		}
@@ -173,7 +176,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 				for i := 0; i < len(exclusions); i++ {
 					exclRefs = append(exclRefs, CellRef{row, exclusions[i]})
 				}
-				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, exclRefs, "Naked Pairs"})
+				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, strategyName})
 			}
 		}
 	}
@@ -181,7 +184,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 	//search column for naked pairs
 	for column := 0; column < 9; column++ {
 		cells := convertColumnToNineCells(notes, column)
-		cellSolutions := findNakedPairInNineCells(cells)
+		cellSolutions := findNakedPairsInNineCells(cells)
 		if len(cellSolutions) == 0 {
 			continue
 		}
@@ -212,7 +215,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 				for i := 0; i < len(exclusions); i++ {
 					exclRefs = append(exclRefs, CellRef{exclusions[i], column})
 				}
-				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, exclRefs, "Naked Pairs"})
+				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, strategyName})
 			}
 		}
 	}
@@ -220,7 +223,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 	//search block for naked pairs
 	for block := 0; block < 9; block++ {
 		cells := convertBlockToNineCells(notes, block)
-		cellSolutions := findNakedPairInNineCells(cells)
+		cellSolutions := findNakedPairsInNineCells(cells)
 		if len(cellSolutions) == 0 {
 			continue
 		}
@@ -262,7 +265,7 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 					column := columnOffset + exclusions[i]%3
 					exclRefs = append(exclRefs, CellRef{row, column})
 				}
-				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, exclRefs, "Naked Pairs"})
+				cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, strategyName})
 			}
 		}
 	}
@@ -270,66 +273,290 @@ func findNakedPairs(notes [9][9]int) []CellExclusion {
 	return cellExclusions
 }
 
-//findNakedPairInNineCells finds naked pairs in nine cells
-func findNakedPairInNineCells(cells [9]int) []RelativeCellSolutions {
+//findNakedPairsInNineCells finds naked pairs in nine cells
+func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	var solutions = []RelativeCellSolutions{}
-	var pairs = []int{}
-	for i := 0; i < 9; i++ {
-		if contains(pairs, cells[i]) || countNumbersInNote(cells[i]) != 2 {
+
+	//keep track of the pairs marked to be ignored
+	ignorePairs := []int{}
+
+	//scan all the cells looking for matching (hidden) pairs
+	for x := 0; x < 9; x++ {
+		//skip cells that don't have at least two numbers in them
+		if notes[x] == 0 || countNumbersInNote(notes[x]) != 2 {
 			continue
 		}
 
-		//avoid process this pair again
-		pairs = append(pairs, cells[i])
+		for y := x + 1; y < 9; y++ {
+			if notes[y] != 0 && getCommonNumberCount(notes[x], notes[y]) == 2 {
+				if notes[x] != notes[y] {
+					continue
+				}
 
-		//found a cell with a pair of note numbers
-		var indexes = []int{i}
+				commonDigits := notes[x] & notes[y]
 
-		//look for another pair match
-		for k := i + 1; k < 9; k++ {
-			if cells[i] != cells[k] {
-				continue
+				//don't process a pair that has already been marked for ignoring
+				if contains(ignorePairs, commonDigits) {
+					break
+				}
+
+				//check that this pair doesn't exist in any other cell
+				foundInThirdCell := false
+				for z := y + 1; z < 9; z++ {
+					if notes[z]&commonDigits == commonDigits {
+						foundInThirdCell = true
+						break
+					}
+				}
+
+				if foundInThirdCell {
+					ignorePairs = append(ignorePairs, commonDigits)
+					break
+				} else {
+					//add this pair as a solution
+					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits, "Cell"})
+				}
 			}
-			indexes = append(indexes, k)
-		}
-
-		//discard this solutiom if more than two pairs are found
-		if len(indexes) == 2 {
-			solutions = append(solutions, RelativeCellSolutions{indexes, cells[i]})
 		}
 	}
 	return solutions
 }
 
-//contains indicates whether the array contains the specified value
-func contains(array []int, value int) bool {
-	for _, item := range array {
-		if item == value {
-			return true
+//findHiddenPairExclusions finds (notes) exclusions from hidden pairs
+func findHiddenPairExclusions(notes [9][9]int) []CellExclusion {
+	strategyName := "Hidden Pairs"
+	var cellExclusions = []CellExclusion{}
+
+	//search rows for hidden pairs
+	for row := 0; row < 9; row++ {
+		cells := convertRowToNineCells(notes, row)
+		cellSolutions := findHiddenPairsInNineCells(cells)
+		if len(cellSolutions) == 0 {
+			continue
+		}
+
+		//remove the non-pair numbers from the pair of cells
+		for i := 0; i < len(cellSolutions); i++ {
+			s := cellSolutions[i]
+
+			removeNumber := 0
+			matchRefs := []CellRef{}
+			for i := 0; i < len(s.indexes); i++ {
+				removeNumber = removeNumber | notes[row][s.indexes[i]]
+				matchRefs = append(matchRefs, CellRef{row, s.indexes[i]})
+			}
+			removeNumber = removeNumber ^ s.number
+			cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
 		}
 	}
-	return false
+
+	//search column for hidden pairs
+	for column := 0; column < 9; column++ {
+		cells := convertColumnToNineCells(notes, column)
+		cellSolutions := findHiddenPairsInNineCells(cells)
+		if len(cellSolutions) == 0 {
+			continue
+		}
+
+		//remove the non-pair numbers from the pair of cells
+		for i := 0; i < len(cellSolutions); i++ {
+			s := cellSolutions[i]
+
+			removeNumber := 0
+			matchRefs := []CellRef{}
+			for i := 0; i < len(s.indexes); i++ {
+				removeNumber = removeNumber | notes[s.indexes[i]][column]
+				matchRefs = append(matchRefs, CellRef{s.indexes[i], column})
+			}
+			removeNumber = removeNumber ^ s.number
+			cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
+		}
+	}
+
+	//search block for hidden pairs
+	for block := 0; block < 9; block++ {
+		cells := convertBlockToNineCells(notes, block)
+		cellSolutions := findHiddenPairsInNineCells(cells)
+		if len(cellSolutions) == 0 {
+			continue
+		}
+
+		rowOffset := 3 * (block / 3)
+		columnOffset := 3 * (block % 3)
+
+		//remove the non-pair numbers from the pair of cells
+		for i := 0; i < len(cellSolutions); i++ {
+			s := cellSolutions[i]
+
+			removeNumber := 0
+			matchRefs := []CellRef{}
+			for i := 0; i < len(s.indexes); i++ {
+				row := rowOffset + s.indexes[i]/3
+				column := columnOffset + s.indexes[i]%3
+				removeNumber = removeNumber | notes[row][column]
+				matchRefs = append(matchRefs, CellRef{row, column})
+			}
+			removeNumber = removeNumber ^ s.number
+			cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
+		}
+	}
+
+	return cellExclusions
 }
 
-// countNumbersInNote indicates how many numbers (bits) are set in the note
-func countNumbersInNote(note int) int {
-	count := 0
-	for i := 0; i < 9; i++ {
-		if note&1 == 1 {
-			count++
+//findHiddenPairsInNineCells finds hidden pairs in nine cells
+func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
+	var solutions = []RelativeCellSolutions{}
+
+	//scan all the cells looking for (hidden) pairs
+	for x := 0; x < 9; x++ {
+		//skip cells that don't have at least two numbers in them
+		if notes[x] == 0 || countNumbersInNote(notes[x]) < 2 {
+			continue
 		}
-		note = note >> 1
+
+		//look for the second hidden pair
+		for y := x + 1; y < 9; y++ {
+			if notes[y] != 0 && getCommonNumberCount(notes[x], notes[y]) == 2 {
+				//ignore naked pairs
+				if notes[x] == notes[y] {
+					continue
+				}
+
+				//identify the pair of numbers
+				commonDigits := notes[x] & notes[y]
+
+				//check that no other cells have either of the common digits
+				addPair := true
+				for z := 0; z < 9; z++ {
+					//ignore the cell pairs already found
+					if z == x || z == y {
+						continue
+					}
+
+					if notes[z]&commonDigits > 0 {
+						addPair = false
+						break
+					}
+				}
+
+				//add this pair as a solution
+				if addPair {
+					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits, "Cell"})
+				}
+
+			}
+		}
 	}
-	return count
+	return solutions
 }
 
-// getLowestNumberFromNote returns the lowest set number (bit) from the note
-func getLowestNumberFromNote(note int) int {
-	for k := 1; k <= 9; k++ {
-		digitAsBit := (int)(math.Pow(2, (float64)(k-1)))
-		if note^digitAsBit == 0 {
-			return k
+//findPointingPairExclusions finds exclusions based on pointing pairs
+func findPointingPairExclusions(notes [9][9]int) []CellExclusion {
+	var cellExclusions = []CellExclusion{}
+
+	for block := 0; block < 9; block++ {
+		blockNotes := convertBlockToNineCells(notes, block)
+		pairSolutions := findPointingPairsInNineCellBlock(blockNotes)
+		if len(pairSolutions) == 0 {
+			continue
+		}
+
+		rowOffset := 3 * (block / 3)
+		columnOffset := 3 * (block % 3)
+
+		//find exclusions for each of the pointing pairs
+		for i := 0; i < len(pairSolutions); i++ {
+			s := pairSolutions[i]
+			if s.location == "Row" {
+				row := rowOffset + s.indexes[0]/3
+
+				//convert the matching pairs into absolute cell refs
+				matchRefs := []CellRef{}
+				for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+					column := columnOffset + s.indexes[cellIndex]%3
+					matchRefs = append(matchRefs, CellRef{row, column})
+				}
+
+				//find the exclusions pointed to by the pairs
+				exclRefs := []CellRef{}
+				for columnIndex := 0; columnIndex < 9; columnIndex++ {
+					//skip matching columns within the 3x3 block
+					cellRef := CellRef{row, columnIndex}
+					if containsCellRef(matchRefs, cellRef) {
+						continue
+					}
+					if notes[row][columnIndex]&s.number == s.number {
+						exclRefs = append(exclRefs, cellRef)
+					}
+				}
+				//only add if there are any exclusions
+				if len(exclRefs) > 0 {
+					cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
+				}
+			}
+
+			if s.location == "Column" {
+				column := columnOffset + s.indexes[0]%3
+
+				//convert the matching pairs into absolute cell refs
+				matchRefs := []CellRef{}
+				for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+					row := rowOffset + s.indexes[cellIndex]/3
+					matchRefs = append(matchRefs, CellRef{row, column})
+				}
+
+				//find the exclusions pointed to by the pairs
+				exclRefs := []CellRef{}
+				for rowIndex := 0; rowIndex < 9; rowIndex++ {
+					//skip matching rows within the 3x3 block
+					cellRef := CellRef{rowIndex, column}
+					if containsCellRef(matchRefs, cellRef) {
+						continue
+					}
+					if notes[rowIndex][column]&s.number == s.number {
+						exclRefs = append(exclRefs, cellRef)
+					}
+				}
+				//only add if there are any exclusions
+				if len(exclRefs) > 0 {
+					cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
+				}
+			}
 		}
 	}
-	return 0
+
+	return cellExclusions
+}
+
+//findPointingPairsInNineCellBlock finds pointing pairs in the block that are
+//aligned in a single column or row
+func findPointingPairsInNineCellBlock(notes [9]int) []RelativeCellSolutions {
+	var solutions = []RelativeCellSolutions{}
+
+	//for each digit, identify the cell indexes that contains that digit/number
+	digitCells := [9][]int{{}, {}, {}, {}, {}, {}, {}, {}, {}}
+	for digit := 0; digit < 9; digit++ {
+		for cellIndex := 0; cellIndex < 9; cellIndex++ {
+			if isNumberSet(notes[cellIndex], digit+1) {
+				digitCells[digit] = append(digitCells[digit], cellIndex)
+			}
+		}
+
+		//skip digits where there are not enough or too many cells
+		if len(digitCells[digit]) <= 1 || len(digitCells[digit]) > 3 {
+			continue
+		}
+
+		//check to see whether the cell indexes are aligned in a column or row
+		if isSameColumnInBlock(digitCells[digit]) {
+			solutions = append(solutions, RelativeCellSolutions{digitCells[digit], setNumber(digit + 1), "Column"})
+			continue
+		}
+		if isSameRowInBlock(digitCells[digit]) {
+			solutions = append(solutions, RelativeCellSolutions{digitCells[digit], setNumber(digit + 1), "Row"})
+			continue
+		}
+	}
+	return solutions
 }

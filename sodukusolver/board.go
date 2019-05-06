@@ -5,8 +5,34 @@ import (
 	"math"
 )
 
+//PrintSolutionSteps prints the solution steps
+//showBoard determines whether the board should be displayed (at each step)
+func PrintSolutionSteps(solution Solution, showBoard bool) {
+	for i := 0; i < len(solution.Steps); i++ {
+		if i == 0 {
+			//show the initial state of the board
+			print("Initial Soduku board\n")
+			PrintBoard(solution.InitialBoard, [9][9]int{}, false)
+			print("\n")
+			print("With Notes\n")
+			PrintBoard(solution.InitialBoard, solution.InitialNotes, true)
+			print("\n")
+		}
+		//provide the solution details for each step
+		step := solution.Steps[i]
+		if showBoard && i > 0 {
+			//show the board again, but with the notes populated as well
+			print("\n")
+			PrintBoard(step.Board, step.Notes, true)
+			print("\n")
+		}
+		print("Step ", fmt.Sprintf("%2d", i+1), " ", step.Description, "\n")
+	}
+	print("\n")
+}
+
 //PrintBoard outputs the current state of the board
-//The showNotes parameter determines whether the notes are also displayed
+//showNotes determines whether the notes are also displayed
 func PrintBoard(board [9][9]int, notes [9][9]int, showNotes bool) {
 	verticalBlockSeparator := "I"
 	print("       1       2       3       4       5       6       7       8       9\n")
@@ -92,7 +118,7 @@ func getCellRefsAsString(cellRefs []CellRef) string {
 func getNotesAsDigitString(note int) string {
 	s := ""
 	for i := 1; i <= 9; i++ {
-		if containsNumberInNote(note, i) {
+		if isNumberSet(note, i) {
 			if len(s) > 0 {
 				s = s + ","
 			}

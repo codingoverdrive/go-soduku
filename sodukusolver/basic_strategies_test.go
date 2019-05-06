@@ -6,24 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_isSingleNumberSet(t *testing.T) {
-	assert.Equal(t, 0, countNumbersInNote(0), "Failed in test for single digit")
-	assert.Equal(t, 1, countNumbersInNote(1), "Failed in test for single digit")
-	assert.Equal(t, 1, countNumbersInNote(2), "Failed in test for single digit")
-	assert.Equal(t, 1, countNumbersInNote(4), "Failed in test for single digit")
-	assert.Equal(t, 2, countNumbersInNote(5), "Failed in test for single digit")
-	assert.Equal(t, 3, countNumbersInNote(7), "Failed in test for single digit")
-	assert.Equal(t, 9, countNumbersInNote(0x1ff), "Failed in test for single digit")
-}
-
-func Test_getLowestNumberFromNote(t *testing.T) {
-	assert.Equal(t, 0, getLowestNumberFromNote(0), "Failed to get correct number from note")
-	assert.Equal(t, 1, getLowestNumberFromNote(1), "Failed to get correct number from note")
-	assert.Equal(t, 2, getLowestNumberFromNote(2), "Failed to get correct number from note")
-	assert.Equal(t, 3, getLowestNumberFromNote(4), "Failed to get correct number from note")
-	assert.Equal(t, 9, getLowestNumberFromNote(0x100), "Failed to get correct number from note")
-}
-
 func Test_findNakedSingles(t *testing.T) {
 	notes1 := [9][9]int{
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -113,23 +95,23 @@ func Test_findHiddenSingles(t *testing.T) {
 	assert.ElementsMatch(t, expected2, findHiddenSingles(notes2), "Two solutions expected")
 }
 
-func Test_findNakedPairInNineCells(t *testing.T) {
+func Test_findNakedPairsInNineCells(t *testing.T) {
 	cells1 := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
-	assert.Equal(t, []RelativeCellSolutions{}, findNakedPairInNineCells(cells1), "No naked pairs expected")
+	assert.Equal(t, []RelativeCellSolutions{}, findNakedPairsInNineCells(cells1), "No naked pairs expected")
 
 	cells2 := [9]int{6, 0x101, 0, 6, 6, 0, 0, 0x101, 0}
-	expected2 := []RelativeCellSolutions{RelativeCellSolutions{[]int{1, 7}, 0x101}}
-	assert.Equal(t, expected2, findNakedPairInNineCells(cells2), "One naked pair expected")
+	expected2 := []RelativeCellSolutions{RelativeCellSolutions{[]int{1, 7}, 0x101, "Cell"}}
+	assert.Equal(t, expected2, findNakedPairsInNineCells(cells2), "One naked pair expected")
 
 	cells3 := [9]int{0, 0x101, 0, 6, 0, 6, 0, 0x101, 0}
 	expected3 := []RelativeCellSolutions{
-		RelativeCellSolutions{[]int{1, 7}, 0x101},
-		RelativeCellSolutions{[]int{3, 5}, 6},
+		RelativeCellSolutions{[]int{1, 7}, 0x101, "Cell"},
+		RelativeCellSolutions{[]int{3, 5}, 6, "Cell"},
 	}
-	assert.ElementsMatch(t, expected3, findNakedPairInNineCells(cells3), "Two naked pairs expected")
+	assert.ElementsMatch(t, expected3, findNakedPairsInNineCells(cells3), "Two naked pairs expected")
 }
 
-func Test_findNakedPairs(t *testing.T) {
+func Test_findNakedPairExclusions(t *testing.T) {
 	notes1 := [9][9]int{
 		{0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{0, 3, 0, 3, 0, 0, 3, 0, 0},
@@ -143,12 +125,13 @@ func Test_findNakedPairs(t *testing.T) {
 	}
 	expected1 := []CellExclusion{
 		CellExclusion{
-			number:     12,
-			matches:    []CellRef{CellRef{6, 1}, CellRef{6, 5}},
-			exclusions: []CellRef{CellRef{6, 0}, CellRef{6, 7}},
-			strategy:   "Naked Pairs"},
+			number:       12,
+			matches:      []CellRef{CellRef{6, 1}, CellRef{6, 5}},
+			removeNumber: 12,
+			exclusions:   []CellRef{CellRef{6, 0}, CellRef{6, 7}},
+			strategy:     "Naked Pairs"},
 	}
-	assert.Equal(t, expected1, findNakedPairs(notes1), "One naked pair expected")
+	assert.Equal(t, expected1, findNakedPairExclusions(notes1), "One naked pair expected")
 
 	notes2 := [9][9]int{
 		{0, 0, 0, 0, 0, 0, 4, 0, 0},
@@ -163,12 +146,13 @@ func Test_findNakedPairs(t *testing.T) {
 	}
 	expected2 := []CellExclusion{
 		CellExclusion{
-			number:     12,
-			matches:    []CellRef{CellRef{2, 6}, CellRef{6, 6}},
-			exclusions: []CellRef{CellRef{0, 6}, CellRef{7, 6}},
-			strategy:   "Naked Pairs"},
+			number:       12,
+			matches:      []CellRef{CellRef{2, 6}, CellRef{6, 6}},
+			removeNumber: 12,
+			exclusions:   []CellRef{CellRef{0, 6}, CellRef{7, 6}},
+			strategy:     "Naked Pairs"},
 	}
-	assert.Equal(t, expected2, findNakedPairs(notes2), "One naked pair expected")
+	assert.Equal(t, expected2, findNakedPairExclusions(notes2), "One naked pair expected")
 
 	notes3 := [9][9]int{
 		{3, 0, 3, 0, 0, 0, 0, 0, 0},
@@ -183,20 +167,179 @@ func Test_findNakedPairs(t *testing.T) {
 	}
 	expected3 := []CellExclusion{
 		CellExclusion{
-			number:     12,
-			matches:    []CellRef{CellRef{1, 1}, CellRef{1, 2}},
-			exclusions: []CellRef{CellRef{1, 0}, CellRef{1, 7}},
-			strategy:   "Naked Pairs"},
+			number:       12,
+			matches:      []CellRef{CellRef{1, 1}, CellRef{1, 2}},
+			removeNumber: 12,
+			exclusions:   []CellRef{CellRef{1, 0}, CellRef{1, 7}},
+			strategy:     "Naked Pairs"},
 		CellExclusion{
-			number:     12,
-			matches:    []CellRef{CellRef{1, 1}, CellRef{1, 2}},
-			exclusions: []CellRef{CellRef{1, 0}, CellRef{2, 1}},
-			strategy:   "Naked Pairs"},
+			number:       12,
+			matches:      []CellRef{CellRef{1, 1}, CellRef{1, 2}},
+			removeNumber: 12,
+			exclusions:   []CellRef{CellRef{1, 0}, CellRef{2, 1}},
+			strategy:     "Naked Pairs"},
 		CellExclusion{
-			number:     3,
-			matches:    []CellRef{CellRef{0, 0}, CellRef{2, 0}},
-			exclusions: []CellRef{CellRef{7, 0}},
-			strategy:   "Naked Pairs"},
+			number:       3,
+			matches:      []CellRef{CellRef{0, 0}, CellRef{2, 0}},
+			removeNumber: 3,
+			exclusions:   []CellRef{CellRef{7, 0}},
+			strategy:     "Naked Pairs"},
 	}
-	assert.ElementsMatch(t, expected3, findNakedPairs(notes3), "Three naked pairs expected")
+	assert.ElementsMatch(t, expected3, findNakedPairExclusions(notes3), "Three naked pairs expected")
+}
+
+func Test_findHiddenPairsInNineCells(t *testing.T) {
+	cells1 := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+	assert.Equal(t, []RelativeCellSolutions{}, findHiddenPairsInNineCells(cells1), "No hidden pairs expected")
+
+	cells2 := [9]int{0, 0x03, 0, 0x07, 0, 0, 0, 0, 0}
+	expected2 := []RelativeCellSolutions{RelativeCellSolutions{[]int{1, 3}, 0x03, "Cell"}}
+	assert.Equal(t, expected2, findHiddenPairsInNineCells(cells2), "One hidden pairs expected")
+
+	cells3 := [9]int{0, 0x0b, 0, 0x07, 0, 0, 0x04, 0, 0}
+	expected3 := []RelativeCellSolutions{RelativeCellSolutions{[]int{1, 3}, 0x03, "Cell"}}
+	assert.Equal(t, expected3, findHiddenPairsInNineCells(cells3), "One hidden pairs expected")
+
+	cells4 := [9]int{0, 0x109, 0, 0, 0, 0, 0, 0x105, 0}
+	expected4 := []RelativeCellSolutions{RelativeCellSolutions{[]int{1, 7}, 0x101, "Cell"}}
+	assert.Equal(t, expected4, findHiddenPairsInNineCells(cells4), "One hidden pair expected")
+
+	cells5 := [9]int{0, 0x109, 0, 0x0e, 0, 0x06, 0, 0x111, 0}
+	expected5 := []RelativeCellSolutions{
+		RelativeCellSolutions{[]int{1, 7}, 0x101, "Cell"},
+		RelativeCellSolutions{[]int{3, 5}, 0x06, "Cell"},
+	}
+	assert.Equal(t, expected5, findHiddenPairsInNineCells(cells5), "Two hidden pairs expected")
+
+	//naked pairs should not be found
+	cells6 := [9]int{0, 0x03, 0, 0x03, 0, 0, 0, 0, 0}
+	expected6 := []RelativeCellSolutions{}
+	assert.Equal(t, expected6, findHiddenPairsInNineCells(cells6), "No hidden pairs expected")
+
+}
+
+func Test_findHiddenPairExclusions(t *testing.T) {
+	notes1 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 14, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 3, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 7, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 7, 0, 0, 0, 0, 14, 0, 0},
+		{0, 0, 0, 13, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected1 := []CellExclusion{
+		CellExclusion{
+			number:       6,
+			matches:      []CellRef{CellRef{6, 1}, CellRef{6, 6}},
+			removeNumber: 9,
+			exclusions:   []CellRef{CellRef{6, 1}, CellRef{6, 6}},
+			strategy:     "Hidden Pairs"},
+		CellExclusion{
+			number:       12,
+			matches:      []CellRef{CellRef{1, 3}, CellRef{7, 3}},
+			removeNumber: 3,
+			exclusions:   []CellRef{CellRef{1, 3}, CellRef{7, 3}},
+			strategy:     "Hidden Pairs"},
+		CellExclusion{
+			number:       3,
+			matches:      []CellRef{CellRef{3, 6}, CellRef{4, 7}},
+			removeNumber: 4,
+			exclusions:   []CellRef{CellRef{3, 6}, CellRef{4, 7}},
+			strategy:     "Hidden Pairs"},
+	}
+	assert.ElementsMatch(t, expected1, findHiddenPairExclusions(notes1), "Three hidden pair expected")
+}
+
+func Test_findPointingPairsInNineCellBlock(t *testing.T) {
+	block := [9]int{
+		0, 0, 0,
+		0, 0, 0,
+		0, 0, 0,
+	}
+	assert.Equal(t, []RelativeCellSolutions{}, findPointingPairsInNineCellBlock(block), "No solution expected")
+
+	block2 := [9]int{
+		0, 9, 1,
+		6, 0, 0,
+		4, 0, 0,
+	}
+	expected2 := []RelativeCellSolutions{
+		RelativeCellSolutions{[]int{1, 2}, 0x01, "Row"},
+		RelativeCellSolutions{[]int{3, 6}, 0x04, "Column"},
+	}
+	assert.ElementsMatch(t, expected2, findPointingPairsInNineCellBlock(block2), "One solution expected")
+}
+
+func Test_findPointingPairExclusions(t *testing.T) {
+	notes1 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 5, 0, 0, 0, 0},
+		{0, 0, 0, 0, 1, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 1, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected1 := []CellExclusion{
+		CellExclusion{
+			number:       1,
+			matches:      []CellRef{CellRef{4, 4}, CellRef{5, 4}},
+			removeNumber: 1,
+			exclusions:   []CellRef{CellRef{7, 4}},
+			strategy:     "Pointing Pairs"},
+	}
+	assert.Equal(t, expected1, findPointingPairExclusions(notes1), "One Pointing pair in row expected")
+
+	notes2 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 5, 1, 0, 0, 0, 1, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 1, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected2 := []CellExclusion{
+		CellExclusion{
+			number:       1,
+			matches:      []CellRef{CellRef{4, 1}, CellRef{4, 2}},
+			removeNumber: 1,
+			exclusions:   []CellRef{CellRef{4, 6}},
+			strategy:     "Pointing Pairs"},
+	}
+	assert.Equal(t, expected2, findPointingPairExclusions(notes2), "One Pointing pair in column expected")
+
+	notes3 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 5, 0, 0, 0},
+		{0, 0, 0, 0, 0, 1, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 4, 0, 4, 6, 0, 0, 4, 0},
+		{0, 0, 0, 0, 0, 1, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected3 := []CellExclusion{
+		CellExclusion{
+			number:       1,
+			matches:      []CellRef{CellRef{3, 5}, CellRef{4, 5}},
+			removeNumber: 1,
+			exclusions:   []CellRef{CellRef{7, 5}},
+			strategy:     "Pointing Pairs"},
+		CellExclusion{
+			number:       4,
+			matches:      []CellRef{CellRef{6, 3}, CellRef{6, 4}},
+			removeNumber: 4,
+			exclusions:   []CellRef{CellRef{6, 1}, CellRef{6, 7}},
+			strategy:     "Pointing Pairs"},
+	}
+	assert.Equal(t, expected3, findPointingPairExclusions(notes3), "Two Pointing pairs expected")
 }
