@@ -38,5 +38,4 @@ func main() {
 		print("\nUnsolved after ", fmt.Sprintf("%s", solution.Elapsed), "\n")
 		print("Stopping\n\n")
 	}
-
 }

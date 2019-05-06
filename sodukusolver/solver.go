@@ -119,26 +119,27 @@ func SolveBoard(board [9][9]int) Solution {
 
 	//keep applying the different solution strategies until the puzzle is solved
 	for {
-		//findNakedSingles
 		result := applyCellSolutionStrategy(findNakedSingles, &solution)
 		if result.success {
 			continue
 		}
 
-		//findHiddenSingles
 		result = applyCellSolutionStrategy(findHiddenSingles, &solution)
 		if result.success {
 			continue
 		}
 
-		//find hidden pairs
 		result = applyCellExclusionStrategy(findHiddenPairExclusions, &solution)
 		if result.success {
 			continue
 		}
 
-		//find naked pairs
 		result = applyCellExclusionStrategy(findNakedPairExclusions, &solution)
+		if result.success {
+			continue
+		}
+
+		result = applyCellExclusionStrategy(findPointingPairExclusions, &solution)
 		if result.success {
 			continue
 		}
@@ -248,10 +249,4 @@ func getSolvedNumbersInNineCells(cells [9]int) int {
 		}
 	}
 	return numbersSet
-}
-
-//containsNumberInNote indicates whether the note contains the specified number
-func containsNumberInNote(note int, number int) bool {
-	numberAsBit := (int)(math.Pow(2, (float64)(number-1)))
-	return note&numberAsBit == numberAsBit
 }

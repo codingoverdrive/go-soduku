@@ -135,7 +135,7 @@ func Test_containsNumberInNote(t *testing.T) {
 		number := testData[i].number
 		digit := testData[i].digit
 		expected := testData[i].expected
-		actual := containsNumberInNote(number, digit)
+		actual := isNumberSet(number, digit)
 		assert.Equal(t, expected, actual, "Invalid value for containsNumberInNote")
 	}
 }

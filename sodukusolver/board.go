@@ -14,6 +14,7 @@ func PrintSolutionSteps(solution Solution, showBoard bool) {
 			print("Initial Soduku board\n")
 			PrintBoard(solution.InitialBoard, [9][9]int{}, false)
 			print("\n")
+			print("With Notes\n")
 			PrintBoard(solution.InitialBoard, solution.InitialNotes, true)
 			print("\n")
 		}
@@ -25,7 +26,7 @@ func PrintSolutionSteps(solution Solution, showBoard bool) {
 			PrintBoard(step.Board, step.Notes, true)
 			print("\n")
 		}
-		print("Pass ", fmt.Sprintf("%2d", i+1), " ", step.Description, "\n")
+		print("Step ", fmt.Sprintf("%2d", i+1), " ", step.Description, "\n")
 	}
 	print("\n")
 }
@@ -117,7 +118,7 @@ func getCellRefsAsString(cellRefs []CellRef) string {
 func getNotesAsDigitString(note int) string {
 	s := ""
 	for i := 1; i <= 9; i++ {
-		if containsNumberInNote(note, i) {
+		if isNumberSet(note, i) {
 			if len(s) > 0 {
 				s = s + ","
 			}

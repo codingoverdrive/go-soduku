@@ -48,3 +48,29 @@ func Test_getCommonNumberCount(t *testing.T) {
 	assert.Equal(t, 1, getCommonNumberCount(0x04, 0x05), "Failed to getCommmonNumberCount correctly")
 	assert.Equal(t, 2, getCommonNumberCount(0x109, 0x105), "Failed to getCommmonNumberCount correctly")
 }
+
+func Test_isSameColumnInBlock(t *testing.T) {
+	assert.False(t, isSameColumnInBlock([]int{1}), "Should be false")
+
+	cellIndexes1 := []int{1, 5}
+	assert.False(t, isSameColumnInBlock(cellIndexes1), "Should not be in same column")
+
+	cellIndexes2 := []int{1, 4}
+	assert.True(t, isSameColumnInBlock(cellIndexes2), "Should be in same column")
+
+	cellIndexes3 := []int{1, 4, 5}
+	assert.False(t, isSameColumnInBlock(cellIndexes3), "Should not be in same column")
+}
+
+func Test_isSameRowInBlock(t *testing.T) {
+	assert.False(t, isSameRowInBlock([]int{1}), "Should be false")
+
+	cellIndexes1 := []int{1, 4}
+	assert.False(t, isSameRowInBlock(cellIndexes1), "Should not be in same row")
+
+	cellIndexes2 := []int{1, 2}
+	assert.True(t, isSameRowInBlock(cellIndexes2), "Should be in same row")
+
+	cellIndexes3 := []int{1, 2, 4}
+	assert.False(t, isSameRowInBlock(cellIndexes3), "Should not be in same row")
+}

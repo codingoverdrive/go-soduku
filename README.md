@@ -10,6 +10,7 @@ The following strategies are implemented:
 * Hidden Singles
 * Hidden Pairs
 * Naked Pairs
+* Pointing Pairs
 
 # Using the Solver package in your own application
 
@@ -18,7 +19,7 @@ Import the sodukusolver package
 import "github.com/codingoverdrive/go-soduku/sodukusolver"
 ```
 
-And create a board and pass it to the SolveBoard() function. Note that zero denotes unknown/unsolved cells
+Create a board and pass it to the SolveBoard() function. Note that zero denotes an unknown/unsolved/empty cell
 
 ```
   //create a board
@@ -46,19 +47,21 @@ returns to the simplest strategy again.
 ```
 	//keep applying the different solution strategies until the puzzle is solved
 	for {
-		//findNakedSingles
 		result := applyCellSolutionStrategy(findNakedSingles, &solution)
 		if result.success {
 			continue
 		}
 
-		//findHiddenSingles
 		result = applyCellSolutionStrategy(findHiddenSingles, &solution)
 		if result.success {
 			continue
 		}
-    ...
 
+		result = applyCellExclusionStrategy(findHiddenPairExclusions, &solution)
+		if result.success {
+			continue
+		}
+    ...
 ```
 
 The solver will stop either when the board is solved, or the strategies yield no further solutions. 
@@ -124,6 +127,7 @@ Initial Soduku board
    I       |       |       I       |       |       I       |       |       I
    =========================================================================
 
+With Notes
        1       2       3       4       5       6       7       8       9
    =========================================================================
    I  1..  |       |  1.3  I  ..3  |  1.3  |  1.3  I  1.3  |  ...  |  1..  I
@@ -163,61 +167,61 @@ Initial Soduku board
    I  ..9  |  .89  |  7.9  I  7..  |  7.9  |  7.9  I  .8.  |       |  ...  I
    =========================================================================
 
-Pass  1 Found Naked Single [7] at H6
-Pass  2 Found Hidden Single [8] at D5
-Pass  3 Found Hidden Single [6] at H4
-Pass  4 Found Hidden Single [7] at I3
-Pass  5 Found Hidden Single [6] at B9
-Pass  6 Found Hidden Single [1] at D3
-Pass  7 Found Hidden Single [2] at I4
-Pass  8 Found Hidden Single [1] at F5
-Pass  9 Found Naked Single [9] at F2
-Pass 10 Found Naked Single [2] at H3
-Pass 11 Found Naked Single [4] at E3
-Pass 12 Found Naked Single [2] at F1
-Pass 13 Found Naked Single [7] at F7
-Pass 14 Found Naked Single [2] at E7
-Pass 15 Found Hidden Single [9] at B8
-Pass 16 Found Hidden Single [2] at C9
-Pass 17 Found Hidden Single [2] at G8
-Pass 18 Found Naked Single [4] at D8
-Pass 19 Found Naked Single [9] at D9
-Pass 20 Found Naked Pairs [3,6] in C3, C5, Removing [3,6] from C2, C7
-Pass 21 Found Naked Pairs [3,9] in E6, I6, Removing [3,9] from A6, B6
-Pass 22 Found Naked Pairs [1,4] in A6, A9, Removing [1,4] from A1, A7
-Pass 23 Found Naked Pairs [1,4] in A9, C7, Removing [1,4] from A7, B7
-Pass 24 Found Naked Single [9] at A1
-Pass 25 Found Hidden Single [9] at G3
-Pass 26 Found Hidden Single [3] at G5
-Pass 27 Found Hidden Single [3] at I2
-Pass 28 Found Naked Single [6] at C5
-Pass 29 Found Naked Single [9] at I6
-Pass 30 Found Naked Single [7] at A5
-Pass 31 Found Naked Single [3] at C3
-Pass 32 Found Naked Single [3] at E6
-Pass 33 Found Naked Single [5] at I5
-Pass 34 Found Naked Single [6] at A3
-Pass 35 Found Naked Single [7] at E4
-Pass 36 Found Naked Single [9] at E5
-Pass 37 Found Hidden Single [8] at I7
-Pass 38 Found Hidden Single [8] at H2
-Pass 39 Found Naked Single [3] at B7
-Pass 40 Found Naked Single [5] at H8
-Pass 41 Found Naked Single [5] at A7
-Pass 42 Found Naked Single [8] at A8
-Pass 43 Found Naked Single [8] at B4
-Pass 44 Found Naked Single [4] at G7
-Pass 45 Found Naked Single [1] at H1
-Pass 46 Found Naked Single [3] at A4
-Pass 47 Found Naked Single [1] at C7
-Pass 48 Found Naked Single [5] at G1
-Pass 49 Found Naked Single [4] at I1
-Pass 50 Found Naked Single [1] at I9
-Pass 51 Found Naked Single [4] at A9
-Pass 52 Found Naked Single [4] at C2
-Pass 53 Found Naked Single [1] at A6
-Pass 54 Found Naked Single [1] at B2
-Pass 55 Found Naked Single [4] at B6
+Step  1 Found Naked Single [7] at H6
+Step  2 Found Hidden Single [8] at D5
+Step  3 Found Hidden Single [6] at H4
+Step  4 Found Hidden Single [7] at I3
+Step  5 Found Hidden Single [6] at B9
+Step  6 Found Hidden Single [1] at D3
+Step  7 Found Hidden Single [2] at I4
+Step  8 Found Hidden Single [1] at F5
+Step  9 Found Naked Single [9] at F2
+Step 10 Found Naked Single [2] at H3
+Step 11 Found Naked Single [4] at E3
+Step 12 Found Naked Single [2] at F1
+Step 13 Found Naked Single [7] at F7
+Step 14 Found Naked Single [2] at E7
+Step 15 Found Hidden Single [9] at B8
+Step 16 Found Hidden Single [2] at C9
+Step 17 Found Hidden Single [2] at G8
+Step 18 Found Naked Single [4] at D8
+Step 19 Found Naked Single [9] at D9
+Step 20 Found Naked Pairs [3,6] in C3, C5, Removing [3,6] from C2, C7
+Step 21 Found Naked Pairs [3,9] in E6, I6, Removing [3,9] from A6, B6
+Step 22 Found Naked Pairs [1,4] in A6, A9, Removing [1,4] from A1, A7
+Step 23 Found Naked Pairs [1,4] in A9, C7, Removing [1,4] from A7, B7
+Step 24 Found Naked Single [9] at A1
+Step 25 Found Hidden Single [9] at G3
+Step 26 Found Hidden Single [3] at G5
+Step 27 Found Hidden Single [3] at I2
+Step 28 Found Naked Single [6] at C5
+Step 29 Found Naked Single [9] at I6
+Step 30 Found Naked Single [7] at A5
+Step 31 Found Naked Single [3] at C3
+Step 32 Found Naked Single [3] at E6
+Step 33 Found Naked Single [5] at I5
+Step 34 Found Naked Single [6] at A3
+Step 35 Found Naked Single [7] at E4
+Step 36 Found Naked Single [9] at E5
+Step 37 Found Hidden Single [8] at I7
+Step 38 Found Hidden Single [8] at H2
+Step 39 Found Naked Single [3] at B7
+Step 40 Found Naked Single [5] at H8
+Step 41 Found Naked Single [5] at A7
+Step 42 Found Naked Single [8] at A8
+Step 43 Found Naked Single [8] at B4
+Step 44 Found Naked Single [4] at G7
+Step 45 Found Naked Single [1] at H1
+Step 46 Found Naked Single [3] at A4
+Step 47 Found Naked Single [1] at C7
+Step 48 Found Naked Single [5] at G1
+Step 49 Found Naked Single [4] at I1
+Step 50 Found Naked Single [1] at I9
+Step 51 Found Naked Single [4] at A9
+Step 52 Found Naked Single [4] at C2
+Step 53 Found Naked Single [1] at A6
+Step 54 Found Naked Single [1] at B2
+Step 55 Found Naked Single [4] at B6
 
        1       2       3       4       5       6       7       8       9
    =========================================================================

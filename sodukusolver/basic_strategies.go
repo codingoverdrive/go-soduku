@@ -17,8 +17,9 @@ type AbsoluteCellSolution struct {
 
 //RelativeCellSolutions represents a solution number and its index position within 9 cells
 type RelativeCellSolutions struct {
-	indexes []int
-	number  int
+	indexes  []int
+	number   int
+	location string
 }
 
 //CellRef defines a coordinate for a cell
@@ -313,7 +314,7 @@ func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 					break
 				} else {
 					//add this pair as a solution
-					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits})
+					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits, "Cell"})
 				}
 			}
 		}
@@ -441,10 +442,120 @@ func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 
 				//add this pair as a solution
 				if addPair {
-					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits})
+					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits, "Cell"})
 				}
 
 			}
+		}
+	}
+	return solutions
+}
+
+//findPointingPairExclusions finds exclusions based on pointing pairs
+func findPointingPairExclusions(notes [9][9]int) []CellExclusion {
+	var cellExclusions = []CellExclusion{}
+
+	for block := 0; block < 9; block++ {
+		blockNotes := convertBlockToNineCells(notes, block)
+		pairSolutions := findPointingPairsInNineCellBlock(blockNotes)
+		if len(pairSolutions) == 0 {
+			continue
+		}
+
+		rowOffset := 3 * (block / 3)
+		columnOffset := 3 * (block % 3)
+
+		//find exclusions for each of the pointing pairs
+		for i := 0; i < len(pairSolutions); i++ {
+			s := pairSolutions[i]
+			if s.location == "Row" {
+				row := rowOffset + s.indexes[0]/3
+
+				//convert the matching pairs into absolute cell refs
+				matchRefs := []CellRef{}
+				for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+					column := columnOffset + s.indexes[cellIndex]%3
+					matchRefs = append(matchRefs, CellRef{row, column})
+				}
+
+				//find the exclusions pointed to by the pairs
+				exclRefs := []CellRef{}
+				for columnIndex := 0; columnIndex < 9; columnIndex++ {
+					//skip matching columns within the 3x3 block
+					cellRef := CellRef{row, columnIndex}
+					if containsCellRef(matchRefs, cellRef) {
+						continue
+					}
+					if notes[row][columnIndex]&s.number == s.number {
+						exclRefs = append(exclRefs, cellRef)
+					}
+				}
+				//only add if there are any exclusions
+				if len(exclRefs) > 0 {
+					cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
+				}
+			}
+
+			if s.location == "Column" {
+				column := columnOffset + s.indexes[0]%3
+
+				//convert the matching pairs into absolute cell refs
+				matchRefs := []CellRef{}
+				for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+					row := rowOffset + s.indexes[cellIndex]/3
+					matchRefs = append(matchRefs, CellRef{row, column})
+				}
+
+				//find the exclusions pointed to by the pairs
+				exclRefs := []CellRef{}
+				for rowIndex := 0; rowIndex < 9; rowIndex++ {
+					//skip matching rows within the 3x3 block
+					cellRef := CellRef{rowIndex, column}
+					if containsCellRef(matchRefs, cellRef) {
+						continue
+					}
+					if notes[rowIndex][column]&s.number == s.number {
+						exclRefs = append(exclRefs, cellRef)
+					}
+				}
+				//only add if there are any exclusions
+				if len(exclRefs) > 0 {
+					cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
+				}
+			}
+		}
+	}
+
+	return cellExclusions
+}
+
+//findPointingPairsInNineCellBlock finds pointing pairs in the block that are
+//aligned in a single column or row
+func findPointingPairsInNineCellBlock(notes [9]int) []RelativeCellSolutions {
+	var solutions = []RelativeCellSolutions{}
+
+	//for each digit, identify the cell indexes that contains that digit/number
+	digitCells := [9][]int{{}, {}, {}, {}, {}, {}, {}, {}, {}}
+	for digit := 0; digit < 9; digit++ {
+		for cellIndex := 0; cellIndex < 9; cellIndex++ {
+			if isNumberSet(notes[cellIndex], digit+1) {
+				digitCells[digit] = append(digitCells[digit], cellIndex)
+			}
+		}
+
+		//skip digits where there are not enough or too many cells
+		if len(digitCells[digit]) <= 1 || len(digitCells[digit]) > 3 {
+			continue
+		}
+
+		//check to see whether the cell indexes are aligned in a column or row
+		if isSameColumnInBlock(digitCells[digit]) {
+			solutions = append(solutions, RelativeCellSolutions{digitCells[digit], setNumber(digit + 1), "Column"})
+			continue
+		}
+		if isSameRowInBlock(digitCells[digit]) {
+			solutions = append(solutions, RelativeCellSolutions{digitCells[digit], setNumber(digit + 1), "Row"})
+			continue
 		}
 	}
 	return solutions

@@ -49,3 +49,31 @@ func getLowestNumberFromNote(note int) int {
 	}
 	return 0
 }
+
+//isSameColumnInBlock indicates whether the cell indexes are in the
+//same column for the cells of a block
+func isSameColumnInBlock(cellIndexes []int) bool {
+	if len(cellIndexes) < 2 {
+		return false
+	}
+	for i := 0; i < len(cellIndexes)-1; i++ {
+		if (cellIndexes[i] % 3) != (cellIndexes[i+1] % 3) {
+			return false
+		}
+	}
+	return true
+}
+
+//isSameRowInBlock indicates whether the cell indexes are in the
+//same row for the cells of a block
+func isSameRowInBlock(cellIndexes []int) bool {
+	if len(cellIndexes) < 2 {
+		return false
+	}
+	for i := 0; i < len(cellIndexes)-1; i++ {
+		if (cellIndexes[i] / 3) != (cellIndexes[i+1] / 3) {
+			return false
+		}
+	}
+	return true
+}
