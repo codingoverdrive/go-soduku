@@ -86,13 +86,18 @@ func applyCellExclusionStrategy(strategy ExclusionStrategy, solution *Solution) 
 			description := "Found " + s.strategy + " " + matchingPair + " in " + getCellRefsAsString(s.matches)
 			description2 := "Removing " + removeNumbers + " from " + getCellRefsAsString(s.exclusions)
 			exclRefs := s.exclusions
+			changedNotes := false
 			for k := 0; k < len(exclRefs); k++ {
 				solution.exclusions[exclRefs[k].row][exclRefs[k].column] = solution.exclusions[exclRefs[k].row][exclRefs[k].column] | s.removeNumber
+				//see if this new exclusion changes the notes value and if not ignore this solution step
+				changedNotes = changedNotes || (solution.notes[exclRefs[k].row][exclRefs[k].column]&s.removeNumber > 0)
 			}
 
 			//create and add the solution step
-			step := SolutionStep{Strategy: s.strategy, Description: description + ", " + description2, Board: solution.board, Notes: solution.notes}
-			solution.Steps = append(solution.Steps, step)
+			if changedNotes {
+				step := SolutionStep{Strategy: s.strategy, Description: description + ", " + description2, Board: solution.board, Notes: solution.notes}
+				solution.Steps = append(solution.Steps, step)
+			}
 
 			//update the board and notes
 			solution.notes = recalculateBoardNotes(solution.board, solution.exclusions)
