@@ -122,8 +122,6 @@ func Test_SolveBoard4(t *testing.T) {
 	}
 
 	solution := SolveBoard(board)
-	PrintSolutionSteps(solution, false)
-
 	assert.True(t, solution.Solved, "Board should be solved")
 	assert.Equal(t, expected, solution.board, "Unexpected board solution")
 

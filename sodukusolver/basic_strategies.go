@@ -468,59 +468,63 @@ func findPointingPairExclusions(notes [9][9]int) []CellExclusion {
 		//find exclusions for each of the pointing pairs
 		for i := 0; i < len(pairSolutions); i++ {
 			s := pairSolutions[i]
-			if s.location == "Row" {
-				row := rowOffset + s.indexes[0]/3
 
-				//convert the matching pairs into absolute cell refs
-				matchRefs := []CellRef{}
-				for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
-					column := columnOffset + s.indexes[cellIndex]%3
-					matchRefs = append(matchRefs, CellRef{row, column})
-				}
+			switch s.location {
+			case "Row":
+				{
+					row := rowOffset + s.indexes[0]/3
 
-				//find the exclusions pointed to by the pairs
-				exclRefs := []CellRef{}
-				for columnIndex := 0; columnIndex < 9; columnIndex++ {
-					//skip matching columns within the 3x3 block
-					cellRef := CellRef{row, columnIndex}
-					if containsCellRef(matchRefs, cellRef) {
-						continue
+					//convert the matching pairs into absolute cell refs
+					matchRefs := []CellRef{}
+					for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+						column := columnOffset + s.indexes[cellIndex]%3
+						matchRefs = append(matchRefs, CellRef{row, column})
 					}
-					if notes[row][columnIndex]&s.number == s.number {
-						exclRefs = append(exclRefs, cellRef)
+
+					//find the exclusions pointed to by the pairs
+					exclRefs := []CellRef{}
+					for columnIndex := 0; columnIndex < 9; columnIndex++ {
+						//skip matching columns within the 3x3 block
+						cellRef := CellRef{row, columnIndex}
+						if containsCellRef(matchRefs, cellRef) {
+							continue
+						}
+						if notes[row][columnIndex]&s.number == s.number {
+							exclRefs = append(exclRefs, cellRef)
+						}
 					}
-				}
-				//only add if there are any exclusions
-				if len(exclRefs) > 0 {
-					cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
-				}
-			}
-
-			if s.location == "Column" {
-				column := columnOffset + s.indexes[0]%3
-
-				//convert the matching pairs into absolute cell refs
-				matchRefs := []CellRef{}
-				for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
-					row := rowOffset + s.indexes[cellIndex]/3
-					matchRefs = append(matchRefs, CellRef{row, column})
-				}
-
-				//find the exclusions pointed to by the pairs
-				exclRefs := []CellRef{}
-				for rowIndex := 0; rowIndex < 9; rowIndex++ {
-					//skip matching rows within the 3x3 block
-					cellRef := CellRef{rowIndex, column}
-					if containsCellRef(matchRefs, cellRef) {
-						continue
-					}
-					if notes[rowIndex][column]&s.number == s.number {
-						exclRefs = append(exclRefs, cellRef)
+					//only add if there are any exclusions
+					if len(exclRefs) > 0 {
+						cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
 					}
 				}
-				//only add if there are any exclusions
-				if len(exclRefs) > 0 {
-					cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
+			case "Column":
+				{
+					column := columnOffset + s.indexes[0]%3
+
+					//convert the matching pairs into absolute cell refs
+					matchRefs := []CellRef{}
+					for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+						row := rowOffset + s.indexes[cellIndex]/3
+						matchRefs = append(matchRefs, CellRef{row, column})
+					}
+
+					//find the exclusions pointed to by the pairs
+					exclRefs := []CellRef{}
+					for rowIndex := 0; rowIndex < 9; rowIndex++ {
+						//skip matching rows within the 3x3 block
+						cellRef := CellRef{rowIndex, column}
+						if containsCellRef(matchRefs, cellRef) {
+							continue
+						}
+						if notes[rowIndex][column]&s.number == s.number {
+							exclRefs = append(exclRefs, cellRef)
+						}
+					}
+					//only add if there are any exclusions
+					if len(exclRefs) > 0 {
+						cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Pointing Pairs"})
+					}
 				}
 			}
 		}
