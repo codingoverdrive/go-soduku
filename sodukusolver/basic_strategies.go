@@ -74,18 +74,18 @@ func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 
 	//search the columns
 	for column := 0; column < 9; column++ {
-		rowSolutions := findHiddenSinglesInNineCells(convertColumnToNineCells(notes, column))
-		for i := 0; i < len(rowSolutions); i++ {
-			s := rowSolutions[i]
+		columnSolutions := findHiddenSinglesInNineCells(convertColumnToNineCells(notes, column))
+		for i := 0; i < len(columnSolutions); i++ {
+			s := columnSolutions[i]
 			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{s.index, column, s.number, "Hidden Single", "Cell"})
 		}
 	}
 
 	//search the blocks
 	for block := 0; block < 9; block++ {
-		rowSolutions := findHiddenSinglesInNineCells(convertBlockToNineCells(notes, block))
-		for i := 0; i < len(rowSolutions); i++ {
-			s := rowSolutions[i]
+		blockSolutions := findHiddenSinglesInNineCells(convertBlockToNineCells(notes, block))
+		for i := 0; i < len(blockSolutions); i++ {
+			s := blockSolutions[i]
 
 			startRow := 3 * (block / 3)
 			row := startRow + s.index/3
