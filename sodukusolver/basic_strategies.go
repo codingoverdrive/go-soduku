@@ -63,38 +63,59 @@ func findNakedSingles(notes [9][9]int) []AbsoluteCellSolution {
 func findHiddenSingles(notes [9][9]int) []AbsoluteCellSolution {
 	var solutions = []AbsoluteCellSolution{}
 
+	done := make(chan bool, 3)
+	results := make(chan AbsoluteCellSolution)
+
 	//search the rows
-	for row := 0; row < 9; row++ {
-		rowSolutions := findHiddenSinglesInNineCells(convertRowToNineCells(notes, row))
-		for i := 0; i < len(rowSolutions); i++ {
-			s := rowSolutions[i]
-			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, s.index, s.number, "Hidden Single", "Cell"})
+	go func([9][9]int, chan AbsoluteCellSolution) {
+		for row := 0; row < 9; row++ {
+			rowSolutions := findHiddenSinglesInNineCells(convertRowToNineCells(notes, row))
+			for i := 0; i < len(rowSolutions); i++ {
+				s := rowSolutions[i]
+				results <- AbsoluteCellSolution{row, s.index, s.number, "Hidden Single", "Cell"}
+			}
 		}
-	}
+		done <- true
+	}(notes, results)
 
 	//search the columns
-	for column := 0; column < 9; column++ {
-		rowSolutions := findHiddenSinglesInNineCells(convertColumnToNineCells(notes, column))
-		for i := 0; i < len(rowSolutions); i++ {
-			s := rowSolutions[i]
-			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{s.index, column, s.number, "Hidden Single", "Cell"})
+	go func([9][9]int, chan AbsoluteCellSolution) {
+		for column := 0; column < 9; column++ {
+			colSolution := findHiddenSinglesInNineCells(convertColumnToNineCells(notes, column))
+			for i := 0; i < len(colSolution); i++ {
+				s := colSolution[i]
+				results <- AbsoluteCellSolution{s.index, column, s.number, "Hidden Single", "Cell"}
+			}
 		}
-	}
+		done <- true
+	}(notes, results)
 
 	//search the blocks
-	for block := 0; block < 9; block++ {
-		rowSolutions := findHiddenSinglesInNineCells(convertBlockToNineCells(notes, block))
-		for i := 0; i < len(rowSolutions); i++ {
-			s := rowSolutions[i]
+	go func([9][9]int, chan AbsoluteCellSolution) {
+		for block := 0; block < 9; block++ {
+			blockSolution := findHiddenSinglesInNineCells(convertBlockToNineCells(notes, block))
+			for i := 0; i < len(blockSolution); i++ {
+				s := blockSolution[i]
 
-			startRow := 3 * (block / 3)
-			row := startRow + s.index/3
-			startColumn := 3 * (block % 3)
-			column := startColumn + s.index%3
+				startRow := 3 * (block / 3)
+				row := startRow + s.index/3
+				startColumn := 3 * (block % 3)
+				column := startColumn + s.index%3
 
-			solutions = appendAbsoluteCellSolution(solutions, AbsoluteCellSolution{row, column, s.number, "Hidden Single", "Cell"})
+				results <- AbsoluteCellSolution{row, column, s.number, "Hidden Single", "Cell"}
+			}
 		}
-	}
+		done <- true
+	}(notes, results)
+
+	//assemble the results
+	go func([]AbsoluteCellSolution, chan AbsoluteCellSolution) {
+		for {
+			solutions = appendAbsoluteCellSolution(solutions, <-results)
+		}
+	}(solutions, results)
+
+	<-done
 
 	return solutions
 }
