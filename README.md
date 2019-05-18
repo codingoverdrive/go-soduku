@@ -15,6 +15,7 @@ The following strategies are implemented:
 
 # How The Solver Works
 The links below will give you more information on how the solver works, including details of the different strategies
+* [Soduku Strategies](doc/strategies.md)
 * [Representing The Soduku Board State](doc/boardstate.md)
 
 # Using the Solver package in your own application
