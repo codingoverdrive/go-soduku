@@ -127,8 +127,6 @@ func Test_SolveBoard4(t *testing.T) {
 
 }
 
-//THIS BOARD CANNOT CURRENTLY BE SOLVED
-/*
 func Test_SolveBoard5(t *testing.T) {
 	board := [9][9]int{
 		{7, 0, 0, 0, 0, 5, 2, 3, 0},
@@ -139,15 +137,21 @@ func Test_SolveBoard5(t *testing.T) {
 		{4, 0, 0, 0, 0, 1, 8, 0, 0},
 		{0, 2, 0, 0, 0, 0, 0, 0, 0},
 		{5, 0, 1, 0, 0, 4, 0, 0, 0},
-		{0, 6, 0, 9, 0, 0, 0, 0, 4},	}
+		{0, 6, 0, 9, 0, 0, 0, 0, 4}}
 
-	expected := [9][9]int{}
+	expected := [9][9]int{
+		{7, 9, 6, 8, 4, 5, 2, 3, 1},
+		{3, 1, 8, 2, 6, 7, 4, 5, 9},
+		{2, 4, 5, 1, 3, 9, 7, 6, 8},
+		{1, 8, 2, 5, 7, 6, 9, 4, 3},
+		{6, 7, 3, 4, 9, 8, 1, 2, 5},
+		{4, 5, 9, 3, 2, 1, 8, 7, 6},
+		{9, 2, 4, 6, 1, 3, 5, 8, 7},
+		{5, 3, 1, 7, 8, 4, 6, 9, 2},
+		{8, 6, 7, 9, 5, 2, 3, 1, 4},
+	}
 
 	solution := SolveBoard(board)
-	PrintSolutionSteps(solution, false)
-
 	assert.True(t, solution.Solved, "Board should be solved")
 	assert.Equal(t, expected, solution.board, "Unexpected board solution")
-
 }
-*/

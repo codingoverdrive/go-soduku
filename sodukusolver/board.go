@@ -127,3 +127,19 @@ func getNotesAsDigitString(note int) string {
 	}
 	return s
 }
+
+//printBoardAs9x9Array handy for printing a board as a Go array
+func printBoardAs9x9Array(board [9][9]int) {
+	print("board := [9][9]int{\n")
+	for row := 0; row < 9; row++ {
+		print("{")
+		for column := 0; column < 9; column++ {
+			if column > 0 {
+				print(", ")
+			}
+			print(board[row][column])
+		}
+		print("},\n")
+	}
+	print("}\n")
+}
