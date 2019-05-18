@@ -171,7 +171,7 @@ The actual possible notes values are therefore a combination of the `notes` and 
 
 // invert the bits but ignore everything to the left of the 9th bit
 // reading from right to left using the 0x1ff mask
-inverted[0][0] = ~notes[0][0] & 0x01ff
+inverted[0][0] = ^notes[0][0] & 0x01ff
 // 0 0000 1101 -> 1 1111 0010
 
 // now remove any bits that have been set in the exclusions

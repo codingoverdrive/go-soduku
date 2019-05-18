@@ -216,6 +216,20 @@ func Test_findHiddenPairsInNineCells(t *testing.T) {
 	expected6 := []RelativeCellSolutions{}
 	assert.Equal(t, expected6, findHiddenPairsInNineCells(cells6), "No hidden pairs expected")
 
+	cells7 := [9]int{1, 0, 7, 15, 0, 0, 0, 0, 0}
+	expected7 := []RelativeCellSolutions{
+		RelativeCellSolutions{[]int{2, 3}, 0x06, "Cell"},
+	}
+	assert.Equal(t, expected7, findHiddenPairsInNineCells(cells7), "One hidden pair expected")
+}
+
+func Test_hasSameCellRefs(t *testing.T) {
+	assert.True(t, hasSameCellRefs([]CellRef{}, []CellRef{}), "Should be equal")
+	assert.False(t, hasSameCellRefs([]CellRef{}, []CellRef{{1, 2}}), "Should not be equal")
+	assert.False(t, hasSameCellRefs([]CellRef{{1, 2}}, []CellRef{}), "Should not be equal")
+	assert.True(t, hasSameCellRefs([]CellRef{{1, 2}}, []CellRef{{1, 2}}), "Should be equal")
+	assert.True(t, hasSameCellRefs([]CellRef{{1, 2}, {2, 3}}, []CellRef{{1, 2}, {2, 3}}), "Should be equal")
+	assert.False(t, hasSameCellRefs([]CellRef{{2, 3}, {1, 2}}, []CellRef{{1, 2}, {2, 3}}), "Should not be equal")
 }
 
 func Test_findHiddenPairExclusions(t *testing.T) {
@@ -251,6 +265,28 @@ func Test_findHiddenPairExclusions(t *testing.T) {
 			strategy:     "Hidden Pairs"},
 	}
 	assert.ElementsMatch(t, expected1, findHiddenPairExclusions(notes1), "Three hidden pair expected")
+
+	notes2 := [9][9]int{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 1, 7, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 15, 0, 0, 0, 0},
+	}
+	expected2 := []CellExclusion{
+		CellExclusion{
+			number:       6,
+			matches:      []CellRef{CellRef{6, 4}, CellRef{8, 4}},
+			removeNumber: 9,
+			exclusions:   []CellRef{CellRef{6, 4}, CellRef{8, 4}},
+			strategy:     "Hidden Pairs"},
+	}
+	assert.Equal(t, expected2, findHiddenPairExclusions(notes2), "One hidden pair expected")
+
 }
 
 func Test_findPointingPairsInNineCellBlock(t *testing.T) {

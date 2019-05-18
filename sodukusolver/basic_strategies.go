@@ -274,6 +274,8 @@ func findNakedPairExclusions(notes [9][9]int) []CellExclusion {
 }
 
 //findNakedPairsInNineCells finds naked pairs in nine cells
+//NOTE this could be replaced by the findHiddenPairsInNineCells modified to allow
+//naked pairs to be found
 func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	var solutions = []RelativeCellSolutions{}
 
@@ -346,7 +348,7 @@ func findHiddenPairExclusions(notes [9][9]int) []CellExclusion {
 				matchRefs = append(matchRefs, CellRef{row, s.indexes[i]})
 			}
 			removeNumber = removeNumber ^ s.number
-			cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
+			cellExclusions = appendCellExclusions(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
 		}
 	}
 
@@ -369,7 +371,7 @@ func findHiddenPairExclusions(notes [9][9]int) []CellExclusion {
 				matchRefs = append(matchRefs, CellRef{s.indexes[i], column})
 			}
 			removeNumber = removeNumber ^ s.number
-			cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
+			cellExclusions = appendCellExclusions(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
 		}
 	}
 
@@ -397,11 +399,39 @@ func findHiddenPairExclusions(notes [9][9]int) []CellExclusion {
 				matchRefs = append(matchRefs, CellRef{row, column})
 			}
 			removeNumber = removeNumber ^ s.number
-			cellExclusions = append(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
+			cellExclusions = appendCellExclusions(cellExclusions, CellExclusion{s.number, matchRefs, removeNumber, matchRefs, strategyName})
 		}
 	}
 
 	return cellExclusions
+}
+
+//appendCellExclusions will only append an exclusion if it does not already exist in the slice/array
+func appendCellExclusions(exclusions []CellExclusion, other CellExclusion) []CellExclusion {
+	for i := 0; i < len(exclusions); i++ {
+		this := exclusions[i]
+		if this.number == other.number && this.removeNumber == other.removeNumber && hasSameCellRefs(this.matches, other.matches) && hasSameCellRefs(this.exclusions, other.exclusions) {
+			return exclusions
+		}
+	}
+	return append(exclusions, other)
+}
+
+//hasSameCellRefs indicates whether the two slices of CellRef's are the same
+//code assumes that they are ordered identically otherwise this will return false
+func hasSameCellRefs(this []CellRef, other []CellRef) bool {
+	if len(this) != len(other) {
+		return false
+	}
+
+	//assumes same order
+	for i := 0; i < len(this); i++ {
+		if this[i] != other[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 //findHiddenPairsInNineCells finds hidden pairs in nine cells
@@ -417,7 +447,7 @@ func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 
 		//look for the second hidden pair
 		for y := x + 1; y < 9; y++ {
-			if notes[y] != 0 && getCommonNumberCount(notes[x], notes[y]) == 2 {
+			if notes[y] != 0 && getCommonNumberCount(notes[x], notes[y]) >= 2 {
 				//ignore naked pairs
 				if notes[x] == notes[y] {
 					continue
@@ -426,21 +456,16 @@ func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 				//identify the pair of numbers
 				commonDigits := notes[x] & notes[y]
 
-				//check that no other cells have either of the common digits
-				addPair := true
-				for z := 0; z < 9; z++ {
-					//ignore the cell pairs already found
-					if z == x || z == y {
+				for cellIndex := 0; cellIndex < 9; cellIndex++ {
+					if cellIndex == x || cellIndex == y {
 						continue
 					}
-
-					if notes[z]&commonDigits > 0 {
-						addPair = false
-						break
-					}
+					//keep removing numbers from the original common numbers
+					commonDigits = commonDigits &^ notes[cellIndex]
 				}
 
 				//add this pair as a solution
+				addPair := countNumbersInNote(commonDigits) == 2
 				if addPair {
 					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits, "Cell"})
 				}
