@@ -149,6 +149,11 @@ func SolveBoard(board [9][9]int) Solution {
 			continue
 		}
 
+		result = applyCellExclusionStrategy(findBoxLineReductionExclusions, &solution)
+		if result.success {
+			continue
+		}
+
 		break
 	}
 

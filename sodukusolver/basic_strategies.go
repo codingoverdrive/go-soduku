@@ -564,3 +564,143 @@ func findPointingPairsInNineCellBlock(notes [9]int) []RelativeCellSolutions {
 	}
 	return solutions
 }
+
+//findBoxLineReductionExclusions finds exclusions within blocks based on box line reductions
+func findBoxLineReductionExclusions(notes [9][9]int) []CellExclusion {
+	var solutions = []CellExclusion{}
+
+	for row := 0; row < 9; row++ {
+		cells := convertRowToNineCells(notes, row)
+		pairSolutions := findBoxPairsInNineCellLine(cells)
+		if len(pairSolutions) == 0 {
+			continue
+		}
+
+		for i := 0; i < len(pairSolutions); i++ {
+			s := pairSolutions[i]
+
+			//convert the matching pairs into absolute cell refs
+			matchRefs := []CellRef{}
+			for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+				matchRefs = append(matchRefs, CellRef{row, s.indexes[cellIndex]})
+			}
+
+			//determine which block the pair sits in
+			column := s.indexes[0]
+			blockIndex := 3*(row/3) + column/3
+			blockCells := convertBlockToNineCells(notes, blockIndex)
+
+			rowOffset := 3 * (blockIndex / 3)
+			columnOffset := 3 * (blockIndex % 3)
+
+			//and remove the same number from any other cells in the block
+			exclRefs := []CellRef{}
+			for cellIndex := 0; cellIndex < 9; cellIndex++ {
+
+				//skip cell if it doesn't contain the number pair
+				if blockCells[cellIndex]&s.number == 0 {
+					continue
+				}
+
+				//skip if this is one of the pair cells
+				cellR := CellRef{rowOffset + cellIndex/3, columnOffset + cellIndex%3}
+				if containsCellRef(matchRefs, cellR) {
+					continue
+				}
+
+				exclRefs = append(exclRefs, cellR)
+			}
+
+			if len(exclRefs) > 0 {
+				solutions = append(solutions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Box Line Reduction"})
+			}
+		}
+	}
+
+	for column := 0; column < 9; column++ {
+		cells := convertColumnToNineCells(notes, column)
+		pairSolutions := findBoxPairsInNineCellLine(cells)
+		if len(pairSolutions) == 0 {
+			continue
+		}
+
+		for i := 0; i < len(pairSolutions); i++ {
+			s := pairSolutions[i]
+
+			//convert the matching pairs into absolute cell refs
+			matchRefs := []CellRef{}
+			for cellIndex := 0; cellIndex < len(s.indexes); cellIndex++ {
+				matchRefs = append(matchRefs, CellRef{s.indexes[cellIndex], column})
+			}
+
+			//determine which block the pair sits in
+			row := s.indexes[0]
+			blockIndex := 3*(row/3) + column/3
+			blockCells := convertBlockToNineCells(notes, blockIndex)
+
+			rowOffset := 3 * (blockIndex / 3)
+			columnOffset := 3 * (blockIndex % 3)
+
+			//and remove the same number from any other cells in the block
+			exclRefs := []CellRef{}
+			for cellIndex := 0; cellIndex < 9; cellIndex++ {
+
+				//skip cell if it doesn't contain the number pair
+				if blockCells[cellIndex]&s.number == 0 {
+					continue
+				}
+
+				//skip if this is one of the pair cells
+				cellR := CellRef{rowOffset + cellIndex/3, columnOffset + cellIndex%3}
+				if containsCellRef(matchRefs, cellR) {
+					continue
+				}
+
+				exclRefs = append(exclRefs, cellR)
+			}
+
+			if len(exclRefs) > 0 {
+				solutions = append(solutions, CellExclusion{s.number, matchRefs, s.number, exclRefs, "Box Line Reduction"})
+			}
+		}
+	}
+
+	return solutions
+}
+
+//findBoxPairsInNineCellLine finds pairs in a row or column nine cell line
+func findBoxPairsInNineCellLine(notes [9]int) []RelativeCellSolutions {
+	var solutions = []RelativeCellSolutions{}
+
+	//for each digit, identify the cell indexes that contains that digit/number
+	digitCells := [9][]int{{}, {}, {}, {}, {}, {}, {}, {}, {}}
+	for digit := 0; digit < 9; digit++ {
+		for cellIndex := 0; cellIndex < 9; cellIndex++ {
+			if isNumberSet(notes[cellIndex], digit+1) {
+				digitCells[digit] = append(digitCells[digit], cellIndex)
+			}
+		}
+
+		//skip digits where there are not enough or too many cells
+		if len(digitCells[digit]) <= 1 || len(digitCells[digit]) > 3 {
+			continue
+		}
+
+		//check whether the cell indexes are all in the same block
+		blockIndex := digitCells[digit][0] / 3
+		for i := 1; i < len(digitCells[digit]); i++ {
+			//determine the block that this cell sits in
+			bIndex := digitCells[digit][i] / 3
+			if bIndex != blockIndex {
+				blockIndex = -1
+				break
+			}
+		}
+
+		//cells in the same block?
+		if blockIndex > -1 {
+			solutions = append(solutions, RelativeCellSolutions{digitCells[digit], setNumber(digit + 1), "Box Pair"})
+		}
+	}
+	return solutions
+}
