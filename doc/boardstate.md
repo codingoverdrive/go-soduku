@@ -114,9 +114,9 @@ When a cell is already solved, the `board` cell value will be >0 and the `notes`
 The non zero numbers in the `notes` array indicate the possible values for a cell where each bit in the number corresponds to those numbers. If a notes cell, for example, contains the value 0x05 (hex) or 0101 (in binary) then this denotes that the possible values or "notes" for that cell are 1 and 3. 
 
 ```
- Possible values      9 8 7 6 5 4 3 2 1
+ Possible note value  9 8 7 6 5 4 3 2 1
                       -----------------
- Int value (binary)   0 0 0 0 0 0 1 0 1
+ Int value (binary)   0 0 0 0 0 0 1 0 1    ==  0x05  or 5 (in decimal)
 ```
 
 Why represent the notes this way? Because it is an extremely easy way to test for numbers in notes, and to add or remove numbers when applying solution strategies. Set arithmetic can be performed very efficiently by computers, and is probably a better solution than using a 9 element array or string to represent the notes values in a cell.

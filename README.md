@@ -11,6 +11,7 @@ The following strategies are implemented:
 * Hidden Pairs
 * Naked Pairs
 * Pointing Pairs
+* Box Line Reductions
 
 # How The Solver Works
 The links below will give you more information on how the solver works, including details of the different strategies
