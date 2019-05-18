@@ -343,3 +343,100 @@ func Test_findPointingPairExclusions(t *testing.T) {
 	}
 	assert.Equal(t, expected3, findPointingPairExclusions(notes3), "Two Pointing pairs expected")
 }
+
+func Test_findBoxPairsInNineCellLine(t *testing.T) {
+	block := [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+	assert.Equal(t, []RelativeCellSolutions{}, findBoxPairsInNineCellLine(block), "No solution expected")
+
+	block2 := [9]int{0, 1, 1, 0, 0, 0, 0, 0, 0}
+	expected2 := []RelativeCellSolutions{
+		RelativeCellSolutions{[]int{1, 2}, 0x01, "Box Pair"},
+	}
+	assert.Equal(t, expected2, findBoxPairsInNineCellLine(block2), "One solution expected")
+
+	block3 := [9]int{0, 1, 1, 0, 0, 0, 1, 0, 0}
+	expected3 := []RelativeCellSolutions{}
+	assert.Equal(t, expected3, findBoxPairsInNineCellLine(block3), "No solution expected")
+
+	block4 := [9]int{0, 4, 4, 0, 0, 0, 2, 2, 0}
+	expected4 := []RelativeCellSolutions{
+		RelativeCellSolutions{[]int{1, 2}, 0x04, "Box Pair"},
+		RelativeCellSolutions{[]int{6, 7}, 0x02, "Box Pair"},
+	}
+	assert.ElementsMatch(t, expected4, findBoxPairsInNineCellLine(block4), "Two solutions expected")
+
+	block5 := [9]int{0, 0, 1, 1, 0, 0, 0, 0, 0}
+	expected5 := []RelativeCellSolutions{}
+	assert.Equal(t, expected5, findBoxPairsInNineCellLine(block5), "No solution expected")
+}
+func Test_findBoxLineReductionExclusions(t *testing.T) {
+	notes1 := [9][9]int{
+		{0, 1, 1, 0, 0, 0, 0, 0, 0},
+		{0, 1, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 1, 1, 1, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected1 := []CellExclusion{
+		CellExclusion{
+			number:       1,
+			matches:      []CellRef{CellRef{0, 1}, CellRef{0, 2}},
+			removeNumber: 1,
+			exclusions:   []CellRef{CellRef{1, 1}, CellRef{2, 2}},
+			strategy:     "Box Line Reduction"},
+	}
+	assert.Equal(t, expected1, findBoxLineReductionExclusions(notes1), "One box line reduction expected")
+
+	notes2 := [9][9]int{
+		{0, 1, 1, 0, 0, 0, 0, 1, 0},
+		{0, 1, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	expected2 := []CellExclusion{
+		CellExclusion{
+			number:       1,
+			matches:      []CellRef{CellRef{0, 1}, CellRef{1, 1}},
+			removeNumber: 1,
+			exclusions:   []CellRef{CellRef{0, 2}, CellRef{2, 2}},
+			strategy:     "Box Line Reduction"},
+	}
+	assert.Equal(t, expected2, findBoxLineReductionExclusions(notes2), "One box line reduction expected")
+
+	notes3 := [9][9]int{
+		{0, 1, 1, 0, 0, 0, 0, 1, 0},
+		{0, 1, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 2, 2, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 2},
+	}
+	expected3 := []CellExclusion{
+		CellExclusion{
+			number:       1,
+			matches:      []CellRef{CellRef{0, 1}, CellRef{1, 1}},
+			removeNumber: 1,
+			exclusions:   []CellRef{CellRef{0, 2}, CellRef{2, 2}},
+			strategy:     "Box Line Reduction"},
+		CellExclusion{
+			number:       2,
+			matches:      []CellRef{CellRef{6, 6}, CellRef{6, 7}},
+			removeNumber: 2,
+			exclusions:   []CellRef{CellRef{8, 8}},
+			strategy:     "Box Line Reduction"},
+	}
+	assert.ElementsMatch(t, expected3, findBoxLineReductionExclusions(notes3), "Two box line reductions expected")
+}
