@@ -295,28 +295,26 @@ func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 					continue
 				}
 
-				commonDigits := notes[x] & notes[y]
-
 				//don't process a pair that has already been marked for ignoring
-				if contains(ignorePairs, commonDigits) {
+				if contains(ignorePairs, notes[x]) {
 					break
 				}
 
 				//check that this pair doesn't exist in any other cell
 				foundInThirdCell := false
 				for z := y + 1; z < 9; z++ {
-					if notes[z]&commonDigits == commonDigits {
+					if notes[z] == notes[x] {
 						foundInThirdCell = true
 						break
 					}
 				}
 
 				if foundInThirdCell {
-					ignorePairs = append(ignorePairs, commonDigits)
+					ignorePairs = append(ignorePairs, notes[x])
 					break
 				} else {
 					//add this pair as a solution
-					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, commonDigits, "Cell"})
+					solutions = append(solutions, RelativeCellSolutions{[]int{x, y}, notes[x], "Cell"})
 				}
 			}
 		}
