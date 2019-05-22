@@ -155,3 +155,33 @@ func Test_SolveBoard5(t *testing.T) {
 	assert.True(t, solution.Solved, "Board should be solved")
 	assert.Equal(t, expected, solution.board, "Unexpected board solution")
 }
+
+func Test_SolveBoard6(t *testing.T) {
+	board := [9][9]int{
+		{0, 0, 0, 0, 0, 6, 0, 0, 0},
+		{0, 2, 0, 8, 7, 9, 0, 0, 0},
+		{0, 7, 0, 0, 0, 0, 2, 0, 0},
+		{9, 0, 0, 0, 0, 0, 0, 2, 5},
+		{1, 0, 0, 9, 0, 0, 0, 3, 0},
+		{0, 6, 0, 0, 1, 0, 0, 7, 0},
+		{6, 4, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 7, 0, 0, 3, 1, 0},
+		{0, 0, 1, 0, 8, 4, 0, 0, 0},
+	}
+
+	expected := [9][9]int{
+		{4, 1, 9, 2, 5, 6, 7, 8, 3},
+		{3, 2, 6, 8, 7, 9, 5, 4, 1},
+		{5, 7, 8, 4, 3, 1, 2, 6, 9},
+		{9, 3, 7, 6, 4, 8, 1, 2, 5},
+		{1, 8, 5, 9, 2, 7, 4, 3, 6},
+		{2, 6, 4, 5, 1, 3, 9, 7, 8},
+		{6, 4, 3, 1, 9, 2, 8, 5, 7},
+		{8, 9, 2, 7, 6, 5, 3, 1, 4},
+		{7, 5, 1, 3, 8, 4, 6, 9, 2},
+	}
+
+	solution := SolveBoard(board)
+	assert.True(t, solution.Solved, "Board should be solved")
+	assert.Equal(t, expected, solution.board, "Unexpected board solution")
+}
