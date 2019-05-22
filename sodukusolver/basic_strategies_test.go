@@ -109,6 +109,10 @@ func Test_findNakedPairsInNineCells(t *testing.T) {
 		RelativeCellSolutions{[]int{3, 5}, 6, "Cell"},
 	}
 	assert.ElementsMatch(t, expected3, findNakedPairsInNineCells(cells3), "Two naked pairs expected")
+
+	cells4 := [9]int{6, 0, 0, 6, 0, 0, 0, 14, 0}
+	expected4 := []RelativeCellSolutions{RelativeCellSolutions{[]int{0, 3}, 6, "Cell"}}
+	assert.Equal(t, expected4, findNakedPairsInNineCells(cells4), "One naked pair expected")
 }
 
 func Test_findNakedPairExclusions(t *testing.T) {
