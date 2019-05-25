@@ -43,16 +43,14 @@ func findNakedSingles(notes [9][9]int) []AbsoluteCellSolution {
 
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
-			note := 0x1ff & notes[row][column]
-
-			if note == 0 {
+			if notes[row][column] == 0 {
 				//no notes to check
 				continue
 			}
 
 			//identify a single number in this cell's notes
-			if countNumbersInNote(note) == 1 {
-				solutions = append(solutions, AbsoluteCellSolution{row, column, getLowestNumberFromNote(note), "Naked Single", "Cell"})
+			if countNumbersInNote(notes[row][column]) == 1 {
+				solutions = append(solutions, AbsoluteCellSolution{row, column, getLowestNumberFromNote(notes[row][column]), "Naked Single", "Cell"})
 			}
 		}
 	}
