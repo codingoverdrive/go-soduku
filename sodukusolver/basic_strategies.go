@@ -1,5 +1,7 @@
 package sodukusolver
 
+const NO_NOTES int = 0
+
 //RelativeCellSolution represents a solution number and its index position within 9 cells
 type RelativeCellSolution struct {
 	index  int
@@ -43,7 +45,7 @@ func findNakedSingles(notes [9][9]int) []AbsoluteCellSolution {
 
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
-			if notes[row][column] == 0 {
+			if notes[row][column] == NO_NOTES {
 				//no notes to check
 				continue
 			}
@@ -283,7 +285,7 @@ func findNakedPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	//scan all the cells looking for matching (hidden) pairs
 	for x := 0; x < 9; x++ {
 		//skip cells that don't have at least two numbers in them
-		if notes[x] == 0 || countNumbersInNote(notes[x]) != 2 {
+		if notes[x] == NO_NOTES || countNumbersInNote(notes[x]) != 2 {
 			continue
 		}
 
@@ -437,7 +439,7 @@ func findHiddenPairsInNineCells(notes [9]int) []RelativeCellSolutions {
 	//scan all the cells looking for (hidden) pairs
 	for x := 0; x < 9; x++ {
 		//skip cells that don't have at least two numbers in them
-		if notes[x] == 0 || countNumbersInNote(notes[x]) < 2 {
+		if notes[x] == NO_NOTES || countNumbersInNote(notes[x]) < 2 {
 			continue
 		}
 

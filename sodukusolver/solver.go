@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const UNSOLVED int = 0
+
 //the board, notes and exclusions are represented as a 9x9 int array
 //with zero denoting no solution value in a board, and no notes in the notes array
 //zero in the exclusions means no removals of notes from the notes value
@@ -186,7 +188,7 @@ func recalculateBoardNotes(board [9][9]int, exclusions [9][9]int) [9][9]int {
 	var newNotes [9][9]int
 	for row := 0; row < 9; row++ {
 		for column := 0; column < 9; column++ {
-			if board[row][column] == 0 {
+			if board[row][column] == UNSOLVED {
 				rowSolvedNumbers := rowSolved[row]
 				colSolvedNumbers := columnSolved[column]
 				blockIndex := 3*(row/3) + column/3
@@ -206,7 +208,7 @@ func recalculateBoardNotes(board [9][9]int, exclusions [9][9]int) [9][9]int {
 func isSolved(board [9][9]int) bool {
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
-			if board[i][j] == 0 {
+			if board[i][j] == UNSOLVED {
 				return false
 			}
 		}
